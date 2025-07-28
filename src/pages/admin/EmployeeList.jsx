@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FaSearch } from "react-icons/fa";
+import { NavLink } from "react-router-dom";
 
 function EmployeeList() {
   const [employees, setEmployees] = useState([
@@ -81,7 +82,7 @@ function EmployeeList() {
         </button>
       </form>
 
-      <div className="flex justify-end"><button className="bg-green-600 p-2 rounded-xl mb-1"> + Add employee</button></div>
+      <div className="flex justify-end"><NavLink to="/dashboard/addemployee" className="bg-green-600 p-2 rounded-xl mb-1"> + Add employee</NavLink></div>
       <div className="overflow-x-auto rounded-lg shadow">
         <table className="w-full text-sm text-left text-gray-700 bg-white">
           <thead className="bg-gray-100 text-xs uppercase text-gray-600">
