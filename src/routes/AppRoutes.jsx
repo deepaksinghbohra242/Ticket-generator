@@ -11,10 +11,11 @@ import RaisedTickets from "../pages/employee/RaisedTickets";
 import NewTicket from "../pages/employee/NewTicket";
 
 function AppRoutes() {
-  const user = "user";
+  const user = "admin";
   return (
     <Routes>
       <Route path="/" element={<Login />} />
+      <Route path="/login" element={<Login />} />
       
       <Route path="/dashboard/" element={<Dashboard />}>
         <Route index element={<Navigate to={user=="admin" ? "tickets" : "assignedticket"} replace />} />

@@ -7,8 +7,7 @@ const Sidebar = ({user}) => {
       : "block px-4 py-2 hover:bg-blue-100 rounded";
 
   return (
-    <div className="w-64 min-h-screen bg-gray-100 shadow-md p-4">
-      <h2 className="text-xl font-bold mb-6">Dashboard</h2>
+    <div className="w-64 min-h-screen bg-gray-200 shadow-md p-4">
       {user === 'admin' ? (
         <nav className="space-y-2">
         <NavLink to="/dashboard/tickets" className={navStyle}>Tickets</NavLink>

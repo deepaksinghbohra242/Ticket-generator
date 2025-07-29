@@ -1,12 +1,15 @@
 import React from "react";
 import AppRoutes from "./routes/AppRoutes";
-import Navbar from "./components/navbar/Navbar";
+import Navbar from "./components/common/Navbar";
+import { AuthProvider } from "./contexts/AuthContext";
 
 function App() {
   return (
     <>
       <Navbar />
-      <AppRoutes />
+      {/* <AuthProvider> */}
+        <AppRoutes />
+      {/* </AuthProvider> */}
     </>
   );
 }
