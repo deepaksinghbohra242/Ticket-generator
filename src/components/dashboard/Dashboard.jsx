@@ -1,19 +1,15 @@
-import React from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../common/Sidebar";
+import React from "react";
 
 function Dashboard() {
   return (
-    <div className="pt-12"> 
-      <div className="flex">
-        <div className="w-64 fixed top-12 left-0 h-[calc(100vh-3rem)] bg-gray-200 shadow-md z-40">
-          <Sidebar user="user" />
-        </div>
+    <div className="min-h-screen bg-gray-50 flex">
+      <Sidebar user="admin" />
 
-        <main className="ml-64 w-full min-h-[calc(100vh-3rem)] p-6 overflow-y-auto">
-          <Outlet />
-        </main>
-      </div>
+      <main className="flex-1 pt-24 ml-66">
+        <Outlet /> 
+      </main>
     </div>
   );
 }

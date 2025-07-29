@@ -9,6 +9,7 @@ import DeletedTickets from '../pages/employee/DeletedTickets';
 import AssignedTickets from "../pages/employee/AssignedTickets";
 import RaisedTickets from "../pages/employee/RaisedTickets";
 import NewTicket from "../pages/employee/NewTicket";
+import HomePage from "../components/dashboard/HomePage";
 
 function AppRoutes() {
   const user = "admin";
@@ -18,7 +19,8 @@ function AppRoutes() {
       <Route path="/login" element={<Login />} />
       
       <Route path="/dashboard/" element={<Dashboard />}>
-        <Route index element={<Navigate to={user=="admin" ? "tickets" : "assignedticket"} replace />} />
+        <Route index element={<Navigate to="homepage" replace />} />
+        <Route path="homepage" element={<HomePage />} />
         <Route path="reports" element={<Reports />} />
         <Route path="tickets" element={<Tickets />} />
         <Route path="employeelist" element={<EmployeeList />} />
