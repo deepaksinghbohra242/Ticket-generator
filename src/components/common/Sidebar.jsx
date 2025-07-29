@@ -85,9 +85,6 @@ function Sidebar({ user }) {
         </div>
 
         <nav className="space-y-2">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-            Navigation
-          </p>
           {navItems.map((item) => (
             <NavItem key={item.path} item={item} />
           ))}
