@@ -46,15 +46,24 @@ export const API_ENDPOINTS = {
     LOGIN: "/auth/login",
     LOGOUT: "/auth/logout",
     VERIFY_TOKEN: "/auth/me",
-    REFRESH_TOKEN: "/auth/refresh-token",
     UPDATE_PROFILE: "/auth/update-profile",
   },
-  USERS: {
-    LIST: "/users",
-    CREATE: "/users",
-    GET: (id) => `/users/${id}`,
-    UPDATE: (id) => `/users/${id}`,
-    DELETE: (id) => `/users/${id}`,
-    SEARCH: "/users/search",
+  ADMIN:{
+    EMPLOYEES: "/admin/get_employees",
+    ADD: "/admin/add_employees",
+    SUBJECT: "/admin/tickets/add_subjects",
   },
+  TICKET:{
+    LIST:"/admin/tickets",
+    RAISED:"/employee/tickets/raised",
+    CLOSED:"/employee/tickets/closed",
+    ASSIGNED:"/employee/tickets/assigned",
+    FIXED:(id) => `/employee/tickets/assigned/${id}/fix`,
+    REOPEN:(id) => `/employee/tickets/reopen/${id}`,
+    ADD:"/employee/tickets/submit",
+    SUBJECT:"/employee/tickets/get_subjects",
+    GET:`/admin/tickets/${id}`,
+    UPDATE:(id , key) => `/admin/tickets/${id}/assignee?assignee=${key}`,
+    CLOSED:(id)=>`/admin/tickets/close/${id}`
+  }
 };
