@@ -6,10 +6,10 @@ import { AuthProvider } from "./contexts/AuthContext";
 function App() {
   return (
     <>
-      <Navbar />
-      {/* <AuthProvider> */}
+      <AuthProvider>
+        <Navbar />
         <AppRoutes />
-      {/* </AuthProvider> */}
+      </AuthProvider>
     </>
   );
 }

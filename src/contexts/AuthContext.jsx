@@ -1,4 +1,4 @@
-import React, { createContext, useContext , useEffect ,useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { authAPI } from "../api/authAPI";
 
 const AuthContext = createContext();
@@ -12,7 +12,7 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState("user");
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -23,13 +23,34 @@ export const AuthProvider = ({ children }) => {
   const checkAuthStatus = async () => {
     try {
       const token = localStorage.getItem("authToken");
-      if (token) {
-        const userData = await authAPI.getUserData(token);
-        setUser(userData);
+      const storedUser = localStorage.getItem("user");
+      
+      if (token && storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+        } catch (parseError) {
+          console.error("Error parsing stored user:", parseError);
+          if (token) {
+            const userData = await authAPI.getUserData();
+            const normalizedRole = userData.role === "ADMIN" ? "admin" : "user";
+            const normalizedUser = { ...userData, role: normalizedRole };
+            setUser(normalizedUser);
+            localStorage.setItem("user", JSON.stringify(normalizedUser));
+          }
+        }
+      } else if (token) {
+        const userData = await authAPI.getUserData();
+        const normalizedRole = userData.role === "ADMIN" ? "admin" : "user";
+        const normalizedUser = { ...userData, role: normalizedRole };
+        setUser(normalizedUser);
+        localStorage.setItem("user", JSON.stringify(normalizedUser));
       }
     } catch (err) {
       console.error("Failed to check auth status:", err);
       localStorage.removeItem("authToken");
+      localStorage.removeItem("user");
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -40,11 +61,22 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       setError(null);
       const response = await authAPI.login(email, password);
+      
+      console.log("Login response:", response);
 
-      if (response.token) {
+      if (response.token && response.role) {
         localStorage.setItem("authToken", response.token);
-        setUser(response.user);
-        return { success: true, user: response.user };
+        
+        const userData = await authAPI.getUserData();
+        const normalizedRole = response.role === "ADMIN" ? "admin" : "user";
+        const normalizedUser = { ...userData, role: normalizedRole };
+        
+        localStorage.setItem("user", JSON.stringify(normalizedUser));
+        setUser(normalizedUser);
+        
+        console.log("User logged in:", normalizedUser);
+        
+        return { success: true, user: normalizedUser };
       }
 
       throw new Error("Invalid Login response");
@@ -53,8 +85,7 @@ export const AuthProvider = ({ children }) => {
         error.response?.data?.message || error.message || "Login failed";
       setError(errorMessage);
       return { success: false, error: errorMessage };
-    }
-    finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -64,12 +95,14 @@ export const AuthProvider = ({ children }) => {
       await authAPI.logout();
     } catch (error) {
       console.error("Logout failed:", error);
-    }finally {
+    } finally {
       localStorage.removeItem("authToken");
+      localStorage.removeItem("user");
       setUser(null);
-      setError(null)
+      setError(null);
+      window.location.href = "/login";
     }
-  }
+  };
 
   const value = {
     user,
@@ -77,10 +110,11 @@ export const AuthProvider = ({ children }) => {
     error,
     login,
     logout,
-    isAuthonticated: !!user,
-    isAdmin: user?.role === "admin",
+    isAuthenticated: !!user,
+    isAdmin: user?.role?.toLowerCase() === "admin",
+    isUser: user?.role?.toLowerCase() === "user",
     clearError: () => setError(null),
-  }
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

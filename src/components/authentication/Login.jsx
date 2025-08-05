@@ -1,24 +1,53 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BsPostcardFill } from "react-icons/bs";
+import { useAuth } from "../../contexts/AuthContext";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    remember: false,
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { login, error, clearError, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/dashboard";
+
+  useEffect(() => {
+    clearError();
+  }, [clearError]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, from]);
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: value,
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
+    setIsLoading(true);
+    try {
+      const result = await login(formData.email, formData.password);
+      if (result.success) {
+        navigate(from, { replace: true });
+      }
+      console.log(result)
+    } catch (err) {
+      console.error("Login error:", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -31,6 +60,13 @@ export default function Login() {
         <h2 className="text-center text-xl font-semibold mb-4">
           Sign in to your account
         </h2>
+
+        {error && (
+          <div className="bg-red-100 text-red-600 p-2 rounded mb-4 text-sm">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium">Email</label>
@@ -45,33 +81,32 @@ export default function Login() {
           <div>
             <label className="block text-sm font-medium">Password</label>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="password"
               className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
               onChange={handleInputChange}
               required
             />
-          </div>
-          <div className="flex items-center justify-between">
-            <label className="flex items-center">
+            <label className="text-sm flex items-center gap-2 mt-1">
               <input
                 type="checkbox"
-                name="remember"
-                checked={formData.remember}
-                onChange={handleInputChange}
-                className="mr-2"
+                checked={showPassword}
+                onChange={() => setShowPassword((prev) => !prev)}
               />
-              Remember me
+              Show password
             </label>
-            <a href="#" className="text-sm text-blue-500 hover:underline">
-              Forgot password?
-            </a>
           </div>
+
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+            disabled={isLoading}
+            className={`w-full py-2 rounded text-white ${
+              isLoading
+                ? "bg-blue-400"
+                : "bg-blue-600 hover:bg-blue-700 transition"
+            }`}
           >
-            Sign in
+            {isLoading ? "Signing in..." : "Sign in"}
           </button>
         </form>
       </div>
