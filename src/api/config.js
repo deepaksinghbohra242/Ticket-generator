@@ -48,11 +48,22 @@ apiClient.interceptors.response.use(
 
 export const API_ENDPOINTS = {
     AUTH : {
-        LOGIN: '/auth/login',
-        LOGOUT: '/auth/logout',
-        VERIFY_TOKEN: '/auth/verify-token',
-        REFRESH_TOKEN: '/auth/refresh-token',
-        FORGOT_PASSWORD: '/auth/forgot-password',
-        RESET_PASSWORD: '/auth/reset-password',
+      LOGIN: '/auth/login',
+      LOGOUT: '/auth/logout',
+      VERIFY_TOKEN: '/auth/verify-token',
+      REFRESH_TOKEN: '/auth/refresh-token',   
+      UPDATE_PROFILE: '/auth/update-profile',  // update at authcontexts user data 
     },
+
+    USERS :{
+      LIST: '/users',      //get users 
+      CREATE: '/users',    // post users
+      GET: (id) => `/users/${id}`,
+      UPDATE: (id) => `/users/${id}`,
+      DELETE: (id) => `/users/${id}`,
+      SEARCH: `/users/search`,
+    }, 
+
+    
+    
 }

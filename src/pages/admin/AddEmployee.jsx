@@ -20,7 +20,6 @@ function AddEmployee() {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Employee Data:", formData);
-    // Reset form (optional)
     setFormData({
       name: "",
       email: "",
@@ -36,7 +35,6 @@ function AddEmployee() {
         👤 Add New Employee
       </h2>
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Name */}
         <div>
           <label className="block text-sm font-medium mb-1 text-gray-700">
             Full Name
@@ -52,7 +50,6 @@ function AddEmployee() {
           />
         </div>
 
-        {/* Email */}
         <div>
           <label className="block text-sm font-medium mb-1 text-gray-700">
             Email Address
@@ -68,7 +65,6 @@ function AddEmployee() {
           />
         </div>
 
-        {/* Password */}
         <div>
           <label className="block text-sm font-medium mb-1 text-gray-700">
             Password
@@ -84,7 +80,6 @@ function AddEmployee() {
           />
         </div>
 
-        {/* Department */}
         <div>
           <label className="block text-sm font-medium mb-1 text-gray-700">
             Department
@@ -100,7 +95,6 @@ function AddEmployee() {
           />
         </div>
 
-        {/* Role */}
         <div>
           <label className="block text-sm font-medium mb-1 text-gray-700">
             Role
@@ -116,7 +110,6 @@ function AddEmployee() {
           </select>
         </div>
 
-        {/* Submit */}
         <div className="pt-4">
           <button
             type="submit"

@@ -2,18 +2,8 @@ import React, { useState } from "react";
 import { 
   User, 
   LogOut, 
-  Menu, 
-  X, 
   Ticket, 
-  BarChart3, 
-  Users, 
-  Plus, 
-  FileText, 
-  CheckSquare, 
-  Trash2,
-  Bell,
-  Settings,
-  Home
+  
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
@@ -50,7 +40,6 @@ function Navbar() {
                 </div>
               </button>
 
-              {/* Dropdown Menu */}
               {showProfileMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
                   <NavLink to={"/dashboard/homepage"} className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50">

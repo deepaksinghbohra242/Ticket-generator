@@ -3,17 +3,11 @@ import {
   User, 
   LogOut, 
   Menu, 
-  X, 
   Ticket, 
   BarChart3, 
   Users, 
-  Plus, 
   FileText, 
   CheckSquare, 
-  Trash2,
-  Bell,
-  Settings,
-  Home
 } from "lucide-react";
 
 function HomePage() {

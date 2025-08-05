@@ -1,19 +1,27 @@
 import React from "react";
-import TicketGrid from "../../components/common/TicketGrid";
+import TicketsTable from "../../components/common/TicketsTable";
 
 function AssignedTickets() {
-  const ticket = [{
-    id: "#12345",
-    status: "Open",
-    department: "IT",
-    description: "System crash on login.",
-    createdAt: "2025-07-27",
-    createdBy: "John Doe",
-  }];
+  const tickets = [
+  {
+    id: 'TCKT001',
+    status: 'Open',
+    priority: 'High',
+    department: 'IT',
+    assignee: 'John Doe',
+  },
+  {
+    id: 'TCKT002',
+    status: 'Closed',
+    priority: 'Low',
+    department: 'HR',
+    assignee: 'Jane Smith',
+  },
+];  
 
   return (
     <>
-      <TicketGrid tickets={ticket} type="assigned" title="📋 Assigned Tickets" />
+      <TicketsTable tickets={tickets} />
     </>
   );
 }

@@ -16,7 +16,6 @@ function NewTicket() {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Submitted Ticket:", formData);
-    // Clear the form
     setFormData({
       department: "",
       description: "",
@@ -32,7 +31,6 @@ function NewTicket() {
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Department */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Department
@@ -48,7 +46,6 @@ function NewTicket() {
           />
         </div>
 
-        {/* Problem Description */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Problem Description
@@ -64,7 +61,6 @@ function NewTicket() {
           />
         </div>
 
-        {/* Priority */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Priority
@@ -81,7 +77,6 @@ function NewTicket() {
           </select>
         </div>
 
-        {/* Severity */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Severity
@@ -98,7 +93,6 @@ function NewTicket() {
           </select>
         </div>
 
-        {/* Submit Button */}
         <div className="pt-4">
           <button
             type="submit"

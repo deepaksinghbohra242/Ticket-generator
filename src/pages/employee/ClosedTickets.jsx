@@ -1,8 +1,7 @@
 import React from "react";
 import TicketsTable from "../../components/common/TicketsTable";
 
-
-function RaisedTickets() {
+function ClosedTickets() {
   const tickets = [
   {
     id: 'TCKT001',
@@ -20,13 +19,11 @@ function RaisedTickets() {
   },
 ];  
 
-
   return (
     <>
-    <TicketsTable tickets={tickets} />
-
+      <TicketsTable tickets={tickets} />
     </>
   );
 }
 
-export default RaisedTickets;
+export default ClosedTickets;
