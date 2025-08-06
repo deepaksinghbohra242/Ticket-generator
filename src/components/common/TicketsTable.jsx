@@ -1,6 +1,7 @@
 import React from 'react';
 import { Ticket, Edit3, Trash2, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 function TicketsTable({ tickets = [] }) {
   const headers = ['Ticket ID', 'Status', 'Priority', 'Department', 'Assignee', 'Created At', 'Actions'];
@@ -53,9 +54,9 @@ function TicketsTable({ tickets = [] }) {
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <div className="flex gap-3">
-                      <button className="text-blue-600 hover:text-blue-800 transition" title="View">
+                      <Link to={`/dashboard/viewticket/${ticket.ticketNo}`} className="text-blue-600 hover:text-blue-800 transition" title="View">
                         <Eye className="w-4 h-4" />
-                      </button>
+                      </Link>
                       <Link to={`/dashboard/editticket/${ticket.ticketNo}`} className="text-blue-600 hover:text-blue-800 transition" title="Edit">
                         <Edit3 className="w-4 h-4" />
                       </Link>

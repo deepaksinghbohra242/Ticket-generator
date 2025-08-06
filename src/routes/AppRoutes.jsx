@@ -10,6 +10,7 @@ import NewTicket from "../pages/employee/NewTicket";
 import HomePage from "../components/dashboard/HomePage";
 import ClosedTickets from "../pages/employee/ClosedTickets";
 import ProtectedRoute from "../components/common/ProtectedRoute";
+import TicketView from "../pages/TicketView";
 
 function AppRoutes() {
   return (
@@ -33,6 +34,7 @@ function AppRoutes() {
         <Route path="assignedticket" element={<AssignedTickets />} />
         <Route path="closedticket" element={<ClosedTickets />} />
         <Route path="editticket/:id" element={<NewTicket />} />
+        <Route path="viewticket/:id" element={<TicketView />} />
         
         <Route
           path="employeelist"
