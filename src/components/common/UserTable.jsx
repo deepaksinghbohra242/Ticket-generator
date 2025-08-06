@@ -1,5 +1,6 @@
 import React from 'react';
 import { Trash2, Edit3 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 function UserTable({ employees = [] }) {
   const userHeaders = ["Employee ID", "Name", "Email", "Department", "Role", "Actions"];
@@ -35,9 +36,9 @@ function UserTable({ employees = [] }) {
                   <td className="px-4 py-4 whitespace-nowrap text-gray-700">{emp.role}</td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <div className="flex gap-3">
-                      <button className="text-blue-600 hover:text-blue-800 transition" title="Edit">
+                      <Link to={`/dashboard/addemployee/${emp.empId}`} className="text-blue-600 hover:text-blue-800 transition" title="Edit">
                         <Edit3 className="w-4 h-4" />
-                      </button>
+                      </Link>
                       <button className="text-red-600 hover:text-red-800 transition" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </button>

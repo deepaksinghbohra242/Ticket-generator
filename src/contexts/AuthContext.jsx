@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { authAPI } from "../api/authAPI";
+import { ticketAPI } from "../api/ticketAPI";
 
 const AuthContext = createContext();
 
@@ -14,10 +15,12 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [subject , setSubject ] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     checkAuthStatus();
+    fetchSubjects();
   }, []);
 
   const checkAuthStatus = async () => {
@@ -104,9 +107,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const fetchSubjects = async () =>{
+    try {
+      const response  = await ticketAPI.getSubjects();
+      setSubject(response.data);
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.log(error);
+    }
+  } 
+
   const value = {
     user,
     loading,
+    subject,
     error,
     login,
     logout,

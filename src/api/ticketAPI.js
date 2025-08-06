@@ -31,8 +31,13 @@ export const ticketAPI = {
     return response.data;
   },
 
-  addTicket: async (ticketPayload) => {
-    const response = await apiClient.post(API_ENDPOINTS.TICKET.ADD, ticketPayload);
+  addTicket: async (ticket) => {
+    const response = await apiClient.post(API_ENDPOINTS.TICKET.ADD, {
+      subject : ticket.subject,
+      department : ticket.department,
+      detailedMessage : ticket.detailedMessage,
+      priority : ticket.priority
+    });
     return response.data;
   },
 
@@ -41,8 +46,8 @@ export const ticketAPI = {
     return response.data;
   },
 
-  getTicket: async (ticketId) => {
-    const response = await apiClient.get(API_ENDPOINTS.TICKET.GET.replace(":id", ticketId));
+  getTicket: async (id) => {
+    const response = await apiClient.get(API_ENDPOINTS.TICKET.GET(id));
     return response.data;
   },
 

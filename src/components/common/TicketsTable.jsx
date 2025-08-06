@@ -1,5 +1,6 @@
 import React from 'react';
 import { Ticket, Edit3, Trash2, Eye } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 function TicketsTable({ tickets = [] }) {
   const headers = ['Ticket ID', 'Status', 'Priority', 'Department', 'Assignee', 'Created At', 'Actions'];
@@ -55,9 +56,9 @@ function TicketsTable({ tickets = [] }) {
                       <button className="text-blue-600 hover:text-blue-800 transition" title="View">
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button className="text-blue-600 hover:text-blue-800 transition" title="Edit">
+                      <Link to={`/dashboard/editticket/${ticket.ticketNo}`} className="text-blue-600 hover:text-blue-800 transition" title="Edit">
                         <Edit3 className="w-4 h-4" />
-                      </button>
+                      </Link>
                       <button className="text-red-600 hover:text-red-800 transition" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </button>

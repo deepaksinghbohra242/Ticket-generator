@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import TicketsTable from "../../components/common/TicketsTable";
 import { ticketAPI } from "../../api/ticketAPI";
-import { Ticket, Edit3, Trash2, Eye } from 'lucide-react';
+import { Ticket } from 'lucide-react';
 
 function Tickets() {
   const temp = [
@@ -11,51 +11,40 @@ function Tickets() {
       empId: "1004",
       department: "Transport",
       subject: "Long Cab Hours",
-      detailedMessage: "Cab TAkes Long Routes",
+      detailedMessage: "Cab Takes Long Routes",
       assignee: null,
       status: "OPEN",
       priority: "HIGH",
       createdAt: "2025-08-05T05:39:40.433008",
-    },
-    {
-      ticketNo: 8,
-      employeeName: "Pooja",
-      empId: "1004",
-      department: "Transport",
-      subject: "Long Cab Hours",
-      detailedMessage: "Cab TAkes Long Routes",
-      assignee: null,
-      status: "OPEN",
-      priority: "HIGH",
-      createdAt: "2025-08-05T05:39:40.433008",
-    },
-    {
-      ticketNo: 8,
-      employeeName: "Pooja",
-      empId: "1004",
-      department: "Transport",
-      subject: "Long Cab Hours",
-      detailedMessage: "Cab TAkes Long Routes",
-      assignee: null,
-      status: "OPEN",
-      priority: "HIGH",
-      createdAt: "2025-08-05T05:39:40.433008",
-    },
+    }
   ];
-  const [tickets, setTickets] = useState(temp);
+
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchTickets = async () => {
       try {
         const data = await ticketAPI.getAllTickets();
-        setTickets(data);
+        if (data && data.length > 0) {
+          setTickets(data);
+        } else {
+          setTickets(temp); 
+        }
       } catch (error) {
-        console.error("Failed to fetch employees:", error);
+        console.error("Failed to fetch tickets:", error);
+        setTickets(temp); 
+      } finally {
+        setLoading(false);
       }
     };
     fetchTickets();
   }, []);
-  console.log(tickets);
+
+  if (loading) {
+    return <p className="text-gray-500">Loading tickets...</p>;
+  }
+
   return (
     <>
       <div className="mb-6">

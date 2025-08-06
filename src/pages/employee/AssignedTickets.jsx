@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState , useEffect } from "react";
 import TicketsTable from "../../components/common/TicketsTable";
 import { Ticket, Edit3, Trash2, Eye } from 'lucide-react';
+import { ticketAPI } from "../../api/ticketAPI";
 
 
 function AssignedTickets() {
@@ -42,7 +43,34 @@ function AssignedTickets() {
       createdAt: "2025-08-05T05:39:40.433008",
     },
   ];
-  const [tickets, setTickets] = useState(temp);
+  
+
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTickets = async () => {
+      try {
+        const data = await ticketAPI.assignedTickets();
+        if (data && data.length > 0) {
+          setTickets(data);
+        } else {
+          setTickets(temp); 
+        }
+      } catch (error) {
+        console.error("Failed to fetch tickets:", error);
+        setTickets(temp); 
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTickets();
+  }, []);
+
+  if (loading) {
+    return <p className="text-gray-500">Loading tickets...</p>;
+  }
+
 
   return (
     <>

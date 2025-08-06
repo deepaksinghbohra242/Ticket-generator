@@ -14,6 +14,7 @@ function Sidebar({ user }) {
   const [activeItem, setActiveItem] = useState('/dashboard/newticket');
 
   const adminNavItems = [
+    { path: '/dashboard/homepage', icon: Home, label: 'Dashboard'},
     { path: '/dashboard/tickets', icon: Ticket, label: 'All Tickets'},
     { path: '/dashboard/employeelist', icon: Users, label: 'Employees'},
   ];
@@ -26,7 +27,7 @@ function Sidebar({ user }) {
     { path: '/dashboard/closedticket', icon: Trash2, label: 'Closed Tickets'},
   ];
 
-  const navItems = user === 'admin' ? [...adminNavItems , ...userNavItems] : userNavItems;
+  const navItems = user === 'admin' ? adminNavItems : userNavItems;
 
   const NavItem = ({ item }) => {
     return (

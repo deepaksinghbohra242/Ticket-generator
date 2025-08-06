@@ -28,11 +28,11 @@ function AppRoutes() {
         <Route index element={<Navigate to="homepage" replace />} />
         
         <Route path="homepage" element={<HomePage />} />
-        <Route path="tickets" element={<Tickets />} />
         <Route path="newticket" element={<NewTicket />} />
         <Route path="raisedticket" element={<RaisedTickets />} />
         <Route path="assignedticket" element={<AssignedTickets />} />
         <Route path="closedticket" element={<ClosedTickets />} />
+        <Route path="editticket/:id" element={<NewTicket />} />
         
         <Route
           path="employeelist"
@@ -42,8 +42,20 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route path="tickets" element={<ProtectedRoute allowedRoles={["admin"]}>
+              <Tickets />
+            </ProtectedRoute>} />
+
         <Route
           path="addemployee"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AddEmployee />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="addemployee/:id"
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <AddEmployee />

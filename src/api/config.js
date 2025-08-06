@@ -62,8 +62,8 @@ export const API_ENDPOINTS = {
     REOPEN:(id) => `/employee/tickets/reopen/${id}`,
     ADD:"/employee/tickets/submit",
     SUBJECT:"/employee/tickets/get_subjects",
-    GET:`/admin/tickets/${id}`,
+    GET:(id) => `/admin/tickets/${id}`,
     UPDATE:(id , key) => `/admin/tickets/${id}/assignee?assignee=${key}`,
-    CLOSED:(id)=>`/admin/tickets/close/${id}`
+    CLOSEDID:(id)=>`/admin/tickets/close/${id}`
   }
 };
