@@ -41,8 +41,8 @@ export const ticketAPI = {
     return response.data;
   },
 
-  getSubjects: async () => {
-    const response = await apiClient.get(API_ENDPOINTS.TICKET.SUBJECT);
+  getSubjects: async (dep) => {
+    const response = await apiClient.get(API_ENDPOINTS.TICKET.SUBJECT(dep));
     return response.data;
   },
 

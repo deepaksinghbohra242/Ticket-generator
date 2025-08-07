@@ -17,6 +17,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [subject , setSubject ] = useState([]);
   const [error, setError] = useState(null);
+  const departments = ["IT" , "HARDWARE" , "HR" , "TRANSPORT"]; 
 
   useEffect(() => {
     checkAuthStatus();
@@ -121,6 +122,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     loading,
+    departments,
     subject,
     error,
     login,

@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import React, { useState } from "react";
 import { 
   Ticket, 
@@ -10,8 +10,20 @@ import {
   Home
 } from "lucide-react";
 
+const activeMatchMap = {
+  '/dashboard/editticket': '/dashboard/newticket',
+  '/dashboard/viewticket': '/dashboard/raisedticket',
+};
+
 function Sidebar({ user }) {
-  const [activeItem, setActiveItem] = useState('/dashboard/newticket');
+  const location = useLocation();
+  const currentPath = location.pathname;
+
+  // 🔍 Match route against map
+  const resolvedPath = Object.keys(activeMatchMap).find(prefix =>
+    currentPath.startsWith(prefix)
+  );
+  const effectivePath = resolvedPath ? activeMatchMap[resolvedPath] : currentPath;
 
   const adminNavItems = [
     { path: '/dashboard/homepage', icon: Home, label: 'Dashboard'},
@@ -30,16 +42,16 @@ function Sidebar({ user }) {
   const navItems = user === 'admin' ? adminNavItems : userNavItems;
 
   const NavItem = ({ item }) => {
+    const isActive = effectivePath.startsWith(item.path);
+    
     return (
       <NavLink
         to={item.path}
-        className={({ isActive }) =>
-          `w-full flex items-center justify-between p-3 rounded-lg transition-all duration-200 ${
-            isActive
-              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg"
-              : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
-          }`
-        }
+        className={`w-full flex items-center justify-between p-3 rounded-lg transition-all duration-200 ${
+          isActive
+            ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg"
+            : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+        }`}
       >
         <div className="flex items-center gap-3">
           <item.icon size={20} className="text-inherit" />
@@ -52,6 +64,7 @@ function Sidebar({ user }) {
   return (
     <div className="fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-white shadow-xl border-r border-gray-200 z-40">
       <div className="p-6">
+        {/* Role Badge */}
         <div className="mb-6">
           <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
             user === 'admin' 
@@ -65,6 +78,7 @@ function Sidebar({ user }) {
           </div>
         </div>
 
+        {/* Navigation */}
         <nav className="space-y-2">
           {navItems.map((item) => (
             <NavItem key={item.path} item={item} />

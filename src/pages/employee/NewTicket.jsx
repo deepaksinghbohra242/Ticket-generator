@@ -1,20 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import { ticketAPI } from "../../api/ticketAPI"; 
-import { adminAPI } from "../../api/adminAPI"; 
+import { ticketAPI } from "../../api/ticketAPI";
+import { adminAPI } from "../../api/adminAPI";
 
 function NewTicket() {
-  const { id } = useParams(); 
-  const para = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const isEditMode = Boolean(id);
-  const { user } = useAuth();
+  const { user, departments } = useAuth();
 
   const [formData, setFormData] = useState({
     subject: "",
     detailedMessage: "",
-    department: user.department,
+    department: "",
     priority: "MEDIUM",
     status: "OPEN",
     assignedTo: "",
@@ -28,15 +27,18 @@ function NewTicket() {
       const fetchTicket = async () => {
         try {
           const data = await ticketAPI.getTicket(id);
-          console.log(data)
           setFormData({
             subject: data.subject,
             detailedMessage: data.detailedMessage,
+            department: data.department,
             priority: data.priority,
-            severity: data.severity,
             status: data.status,
             assignedTo: data.assignedTo || "",
           });
+
+          // fetch subjects for the department
+          const subs = await ticketAPI.getSubjectsByDepartment(data.department);
+          setSubjects(subs);
         } catch (err) {
           console.error("Error fetching ticket:", err);
         }
@@ -44,23 +46,29 @@ function NewTicket() {
       fetchTicket();
     }
 
-    ticketAPI
-      .getSubjects()
-      .then(setSubjects)
-      .catch((err) => console.error("Error fetching subjects:", err));
-
     if (user.role === "ADMIN") {
       adminAPI.getEmployees().then(setEmployees).catch(console.error);
     }
-  }, [id, user.role]);
+  }, [id, isEditMode, user.role]);
 
-  const handleChange = (e) => {
+  // 🔄 Update formData
+  const handleChange = async (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
 
-  const handleAssignToMe = () => {
-    setFormData((prev) => ({ ...prev, assignedTo: user.empId }));
+    // Fetch subjects when department changes
+    if (name === "department") {
+      try {
+        const subs = await ticketAPI.getSubjects(value);
+        setSubjects(subs);
+        setFormData((prev) => ({ ...prev, subject: "" })); // reset subject
+      } catch (err) {
+        console.error("Error fetching subjects:", err);
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -86,6 +94,28 @@ function NewTicket() {
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Department Dropdown */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Department
+          </label>
+          <select
+            name="department"
+            value={formData.department}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
+          >
+            <option value="">-- Select Department --</option>
+            {departments.map((dept, index) => (
+              <option key={index} value={dept}>
+                {dept}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Subject Dropdown */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Subject
@@ -106,6 +136,7 @@ function NewTicket() {
           </select>
         </div>
 
+        {/* Description */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Description
@@ -121,6 +152,7 @@ function NewTicket() {
           />
         </div>
 
+        {/* Priority */}
         <div>
           <label className="block text-sm font-medium mb-1 text-gray-700">
             Priority
@@ -137,6 +169,7 @@ function NewTicket() {
           </select>
         </div>
 
+        {/* Status (edit only) */}
         {isEditMode && (
           <div>
             <label className="block text-sm font-medium mb-1 text-gray-700">
@@ -156,6 +189,7 @@ function NewTicket() {
           </div>
         )}
 
+        {/* Submit Button */}
         <div className="pt-4">
           <button
             type="submit"

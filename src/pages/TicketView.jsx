@@ -6,9 +6,10 @@ import { ticketAPI } from '../api/ticketAPI';
 
 function TicketView() {
   const { user, isAdmin } = useAuth();
-  const { ticketId } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const currentUser = user;
+  console.log(id)
 
   // Initial mock data - replace with API call
   const [ticket, setTicket] = useState({
@@ -77,9 +78,9 @@ function TicketView() {
   // Fetch ticket data when component mounts
   useEffect(() => {
     const fetchTicketData = async () => {
-      if (ticketId) {
+      if (id) {
         try {
-          const ticketData = await ticketAPI.getTicket(ticketId);
+          const ticketData = await ticketAPI.getTicket(id);
           if (ticketData) {
             setTicket(ticketData);
             setSelectedAssignee(ticketData.assignee);
@@ -96,7 +97,7 @@ function TicketView() {
     };
 
     fetchTicketData();
-  }, [ticketId]);
+  }, [id]);
 
   const handleCommentSubmit = (e) => {
     if (e) e.preventDefault();
@@ -127,7 +128,7 @@ function TicketView() {
       };
       
       // Update via API
-      await ticketAPI.updateTicket(ticketId, updatedTicket);
+      await ticketAPI.updateTicket(id, updatedTicket);
       
       setTicket(updatedTicket);
       setIsEditing(false);
