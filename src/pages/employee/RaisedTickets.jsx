@@ -5,44 +5,6 @@ import { ticketAPI } from "../../api/ticketAPI";
 
 
 function RaisedTickets() {
-  const temp = [
-    {
-      ticketNo: 1,
-      employeeName: "Pooja",
-      empId: "1004",
-      department: "Transport",
-      subject: "Long Cab Hours",
-      detailedMessage: "Cab TAkes Long Routes",
-      assignee: null,
-      status: "OPEN",
-      priority: "HIGH",
-      createdAt: "2025-08-05T05:39:40.433008",
-    },
-    {
-      ticketNo: 2,
-      employeeName: "Pooja",
-      empId: "1004",
-      department: "Transport",
-      subject: "Long Cab Hours",
-      detailedMessage: "Cab TAkes Long Routes",
-      assignee: null,
-      status: "OPEN",
-      priority: "HIGH",
-      createdAt: "2025-08-05T05:39:40.433008",
-    },
-    {
-      ticketNo: 3,
-      employeeName: "Pooja",
-      empId: "1004",
-      department: "Transport",
-      subject: "Long Cab Hours",
-      detailedMessage: "Cab TAkes Long Routes",
-      assignee: null,
-      status: "OPEN",
-      priority: "HIGH",
-      createdAt: "2025-08-05T05:39:40.433008",
-    },
-  ];
   
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -51,14 +13,9 @@ function RaisedTickets() {
     const fetchTickets = async () => {
       try {
         const data = await ticketAPI.raisedTickets();
-        if (data && data.length > 0) {
           setTickets(data);
-        } else {
-          setTickets(temp); 
-        }
       } catch (error) {
         console.error("Failed to fetch tickets:", error);
-        setTickets(temp); 
       } finally {
         setLoading(false);
       }
@@ -81,7 +38,7 @@ function RaisedTickets() {
         <div className="h-1 w-20 bg-gradient-to-r from-blue-600 to-indigo-600 rounded" />
       </div>
 
-      <TicketsTable tickets={tickets} />
+      <TicketsTable tickets={tickets}  type="raised"/>
     </>
   );
 }

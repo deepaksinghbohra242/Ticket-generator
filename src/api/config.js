@@ -63,7 +63,10 @@ export const API_ENDPOINTS = {
     ADD:"/employee/tickets/submit",
     SUBJECT:(id) => `/employee/tickets/get_subjects?department=${id}`,
     GET:(id) => `/admin/tickets/${id}`,
+    GETUSER:(id) => `/employee/tickets/${id}`,
     UPDATE:(id , key) => `/admin/tickets/${id}/assignee?assignee=${key}`,
-    CLOSEDID:(id)=>`/admin/tickets/close/${id}`
+    CLOSEDID:(id)=>`/admin/tickets/close/${id}`,
+    ASSIGNETOME: (id)=>`/employee/tickets/assign-to-me/${id}`,
+    UPDATETICKETASIGNNE: (id , eid)=> `/admin/tickets/${id}/assignee?assignee=${eid}`
   }
 };

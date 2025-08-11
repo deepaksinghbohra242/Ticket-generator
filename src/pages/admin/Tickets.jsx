@@ -55,7 +55,7 @@ function Tickets() {
         <div className="h-1 w-20 bg-gradient-to-r from-blue-600 to-indigo-600 rounded" />
       </div>
 
-      <TicketsTable tickets={tickets} />
+      <TicketsTable tickets={tickets} type="admin" />
     </>
   );
 }

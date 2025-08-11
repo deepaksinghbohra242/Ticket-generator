@@ -26,8 +26,8 @@ export const ticketAPI = {
     return response.data;
   },
 
-  reopenTicket: async (ticketId, payload) => {
-    const response = await apiClient.post(API_ENDPOINTS.TICKET.REOPEN(ticketId), payload);
+  reopenTicket: async (ticketId) => {
+    const response = await apiClient.put(API_ENDPOINTS.TICKET.REOPEN(ticketId));
     return response.data;
   },
 
@@ -51,13 +51,28 @@ export const ticketAPI = {
     return response.data;
   },
 
-  updateAssignee: async (ticketId, assigneeId) => {
-    const response = await apiClient.put(API_ENDPOINTS.TICKET.UPDATE(ticketId, assigneeId));
+  getUserTicket : async (id) => {
+    const response = await apiClient.get(API_ENDPOINTS.TICKET.GETUSER(id));
     return response.data;
   },
 
   closeTicket: async (ticketId) => {
     const response = await apiClient.put(API_ENDPOINTS.TICKET.CLOSED(ticketId));
     return response.data;
-  }
+  },
+
+  closeAdminTicket: async (ticketId) => {
+    const response = await apiClient.put(API_ENDPOINTS.TICKET.CLOSEDID(ticketId));
+    return response.data;
+  },
+
+  assignToMe: async (id) => {
+    const response = await apiClient.put(API_ENDPOINTS.TICKET.ASSIGNETOME(id))
+    return response.data;
+  },
+
+  updateTicketAssignee: async (ticketId, assigneeEmpId) => {
+    const response = await apiClient.put(API_ENDPOINTS.TICKET.UPDATETICKETASIGNNE(ticketId , assigneeEmpId));
+    return response.data;
+  },
 };

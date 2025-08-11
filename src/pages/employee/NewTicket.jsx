@@ -23,10 +23,11 @@ function NewTicket() {
   const [subjects, setSubjects] = useState([]);
 
   useEffect(() => {
-    if (isEditMode) {
-      const fetchTicket = async () => {
+    const fetchData = async () => {
+      if (isEditMode) {
         try {
-          const data = await ticketAPI.getTicket(id);
+          const data = await ticketAPI.getUserTicket(id);
+
           setFormData({
             subject: data.subject,
             detailedMessage: data.detailedMessage,
@@ -36,22 +37,22 @@ function NewTicket() {
             assignedTo: data.assignedTo || "",
           });
 
-          // fetch subjects for the department
-          const subs = await ticketAPI.getSubjectsByDepartment(data.department);
+          // Fetch subjects for the prefilled department
+          const subs = await ticketAPI.getSubjects(data.department);
           setSubjects(subs);
         } catch (err) {
           console.error("Error fetching ticket:", err);
         }
-      };
-      fetchTicket();
-    }
+      }
 
-    if (user.role === "ADMIN") {
-      adminAPI.getEmployees().then(setEmployees).catch(console.error);
-    }
+      if (user.role === "ADMIN") {
+        adminAPI.getEmployees().then(setEmployees).catch(console.error);
+      }
+    };
+
+    fetchData();
   }, [id, isEditMode, user.role]);
 
-  // 🔄 Update formData
   const handleChange = async (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -59,18 +60,17 @@ function NewTicket() {
       [name]: value,
     }));
 
-    // Fetch subjects when department changes
     if (name === "department") {
       try {
         const subs = await ticketAPI.getSubjects(value);
         setSubjects(subs);
-        setFormData((prev) => ({ ...prev, subject: "" })); // reset subject
+        setFormData((prev) => ({ ...prev, subject: "" }));
       } catch (err) {
         console.error("Error fetching subjects:", err);
       }
     }
   };
-
+  console.log(formData);
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -104,9 +104,22 @@ function NewTicket() {
             value={formData.department}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            disabled={isEditMode}
+            className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none ${
+              isEditMode ? "bg-gray-100 cursor-not-allowed" : ""
+            }`}
           >
             <option value="">-- Select Department --</option>
+
+            {/* If edit mode and department not in list, still show it */}
+            {isEditMode &&
+              formData.department &&
+              !departments.includes(formData.department) && (
+                <option value={formData.department}>
+                  {formData.department}
+                </option>
+              )}
+
             {departments.map((dept, index) => (
               <option key={index} value={dept}>
                 {dept}
@@ -125,9 +138,17 @@ function NewTicket() {
             value={formData.subject}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none`}
           >
             <option value="">-- Select Subject --</option>
+
+            {/* If edit mode and subject not in list, still show it */}
+            {isEditMode &&
+              formData.subject &&
+              !subjects.includes(formData.subject) && (
+                <option value={formData.subject}>{formData.subject}</option>
+              )}
+
             {subjects.map((sub, index) => (
               <option key={index} value={sub}>
                 {sub}
