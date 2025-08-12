@@ -1,11 +1,27 @@
 import React from 'react';
 import { Ticket, Edit3, Trash2, Eye } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
-function TicketsTable({ tickets = [] , type }) {
-  const {isAdmin} = useAuth();
+function TicketsTable({ tickets = [], type }) {
+  const { isAdmin } = useAuth();
+  const navigate = useNavigate();
+
   const headers = ['Ticket ID', 'Status', 'Priority', 'Department', 'Assignee', 'Created At', 'Actions'];
+
+  // Determine the correct "from" path based on ticket list type
+  const getFromPath = () => {
+    if (isAdmin && type === 'all') return '/dashboard/tickets';
+    if (type === 'assigned') return '/dashboard/assignedticket';
+    if (type === 'closed') return '/dashboard/closedticket';
+    if (type === 'raised') return '/dashboard/raisedticket';
+    return '/dashboard/homepage'; // fallback
+  };
+
+  const handleTicketRouting = (id) => {
+    const fromPath = getFromPath();
+    navigate(`/dashboard/viewticket/${id}`, { state: { from: fromPath } });
+  };
 
   return (
     <div className="mb-12">
@@ -55,12 +71,22 @@ function TicketsTable({ tickets = [] , type }) {
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <div className="flex gap-3">
-                      <Link to={`/dashboard/viewticket/${ticket.ticketNo}`} className="text-blue-600 hover:text-blue-800 transition" title="View">
+                      <button
+                        onClick={() => handleTicketRouting(ticket.ticketNo)}
+                        className="text-blue-600 hover:text-blue-800 transition"
+                        title="View"
+                      >
                         <Eye className="w-4 h-4" />
-                      </Link>
-                      {!isAdmin && <Link to={`/dashboard/editticket/${ticket.ticketNo}`} className="text-blue-600 hover:text-blue-800 transition" title="Edit">
-                        <Edit3 className="w-4 h-4" />
-                      </Link>}
+                      </button>
+                      {!isAdmin && (
+                        <button
+                          onClick={() => navigate(`/dashboard/editticket/${ticket.ticketNo}`)}
+                          className="text-blue-600 hover:text-blue-800 transition"
+                          title="Edit"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

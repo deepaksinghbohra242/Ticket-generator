@@ -10,20 +10,13 @@ import {
   Home
 } from "lucide-react";
 
-const activeMatchMap = {
-  '/dashboard/editticket': '/dashboard/newticket',
-  '/dashboard/viewticket': '/dashboard/raisedticket',
-};
-
 function Sidebar({ user }) {
   const location = useLocation();
   const currentPath = location.pathname;
+  const fromPath = location.state?.from; // ✅ Origin path from navigation
 
-  // Match route against map
-  const resolvedPath = Object.keys(activeMatchMap).find(prefix =>
-    currentPath.startsWith(prefix)
-  );
-  const effectivePath = resolvedPath ? activeMatchMap[resolvedPath] : currentPath;
+  // Use `fromPath` if available, else fallback to currentPath
+  const effectivePath = fromPath || currentPath;
 
   const adminNavItems = [
     { path: '/dashboard/tickets', icon: Ticket, label: 'All Tickets'},
@@ -38,14 +31,12 @@ function Sidebar({ user }) {
     { path: '/dashboard/closedticket', icon: Trash2, label: 'Closed Tickets'},
   ];
 
-  // ✅ Flatten array properly
   const navItems = user === 'admin' 
     ? [...adminNavItems, ...userNavItems] 
     : userNavItems;
 
   const NavItem = ({ item }) => {
     const isActive = effectivePath.startsWith(item.path);
-    
     return (
       <NavLink
         to={item.path}
