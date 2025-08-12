@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { User, Edit3, CheckCircle, AlertCircle } from "lucide-react";
+import { User, Edit3, CheckCircle, AlertCircle, ChevronDown } from "lucide-react";
 import { adminAPI } from "../../api/adminAPI";
 import { ticketAPI } from "../../api/ticketAPI";
-
 
 const statusOptions = [
   { value: "OPEN", label: "Open" },
@@ -25,18 +24,20 @@ function TicketManagement({
   const [departmentEmployees, setDepartmentEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
   // Determine user permissions and ticket state
   const isAssignedToCurrentUser = currentUser && ticket && (
-    currentUser.empId === ticket.assigneeEmpId || 
-    currentUser.name === ticket.assignee
+    currentUser.empId === ticket.assignee
   );
+
   const isTicketCreatedByCurrentUser = currentUser && ticket && (
-    currentUser.empId === ticket.employeeEmpId || 
-    currentUser.empId === ticket.raisedByEmpId
+    currentUser.empId === ticket.empId 
   );
+  
   const canAssignToSelf = !isAdmin && !isTicketCreatedByCurrentUser && !isAssignedToCurrentUser;
   const canModifyStatus = isAssignedToCurrentUser || isAdmin;
+  const isTicketAssigned = ticket?.assignee;
 
   useEffect(() => {
     if (isAdmin) {
@@ -49,7 +50,6 @@ function TicketManagement({
       setLoading(true);
       const employees = await adminAPI.getEmployees();
       
-      // Filter employees by department if ticket has department info
       const filteredEmployees = ticket?.department 
         ? employees.filter(emp => emp.department === ticket.department)
         : employees;
@@ -69,14 +69,11 @@ function TicketManagement({
       setError("");
 
       if (isAdmin) {
-        // Admin assigning to themselves
         await ticketAPI.updateTicketAssignee(ticketId, currentUser.empId);
       } else {
-        // Employee assigning to themselves
         await ticketAPI.assignToMe(ticket.ticketNo || ticketId);
       }
 
-      // Update local state
       const updatedTicket = {
         ...ticket,
         assignee: currentUser.name,
@@ -100,7 +97,6 @@ function TicketManagement({
 
       await ticketAPI.updateTicketAssignee(ticketId, selectedAssigneeEmpId);
 
-      // Find the selected employee details
       const selectedEmployee = departmentEmployees.find(emp => emp.empId === selectedAssigneeEmpId);
       
       const updatedTicket = {
@@ -128,17 +124,12 @@ function TicketManagement({
       setError("");
 
       if (newStatus === "FIXED" && isAssignedToCurrentUser && !isAdmin) {
-        // Employee marking ticket as fixed
-        await ticketAPI.markAsFixed(ticket.ticketNo || ticketId);
+        await ticketAPI.fixedTicket(ticket.ticketNo || ticketId);
       } else if (newStatus === "CLOSED" && isAdmin && ticket.status === "FIXED") {
-        // Admin closing a fixed ticket
-        await ticketAPI.closeFixedTicket(ticket.ticketNo || ticketId);
+        await ticketAPI.closedTickets(ticket.ticketNo || ticketId);
       } else if (newStatus === "OPEN" && ticket.status === "CLOSED") {
-        // Reopening a closed ticket
         await ticketAPI.reopenTicket(ticket.ticketNo || ticketId);
       } else {
-        // For other status changes, we might need a general update API
-        // This might require additional API endpoint
         console.warn("Status change not supported by current API");
         return;
       }
@@ -149,7 +140,7 @@ function TicketManagement({
       };
 
       onUpdateTicket(updatedTicket);
-      setIsEditing(false);
+      setShowStatusDropdown(false);
     } catch (error) {
       console.error("Failed to update status:", error);
       setError("Failed to update ticket status");
@@ -158,32 +149,136 @@ function TicketManagement({
     }
   };
 
-  const handleCancel = () => {
-    setIsEditing(false);
-    setSelectedAssignee("");
-    setSelectedAssigneeEmpId("");
-    setError("");
-  };
-
   const getAvailableStatusOptions = () => {
     const currentStatus = ticket?.status || "OPEN";
     
     if (!isAdmin && isAssignedToCurrentUser) {
-      // Employee can only mark as fixed if assigned to them
       return statusOptions.filter(option => 
-        option.value === currentStatus || option.value === "FIXED"
+        option.value !== currentStatus && 
+        (option.value === "FIXED" || option.value === "IN_PROGRESS")
       );
     } else if (isAdmin) {
-      // Admin can change to any appropriate status
       if (currentStatus === "FIXED") {
         return statusOptions.filter(option => 
-          option.value === currentStatus || option.value === "CLOSED"
+          option.value === "CLOSED" || option.value === "OPEN"
         );
       }
-      return statusOptions;
+      return statusOptions.filter(option => option.value !== currentStatus);
     }
     
-    return statusOptions.filter(option => option.value === currentStatus);
+    return [];
+  };
+
+  const renderAssignmentSection = () => {
+    // Case 1: Ticket is already assigned
+    if (isTicketAssigned) {
+      if (isAssignedToCurrentUser) {
+        // If assigned to current user, show their name with emphasis
+        return (
+          <div className="px-4 py-2 bg-blue-100 text-blue-700 border-2 border-blue-300 rounded-lg flex items-center justify-center gap-2">
+            <CheckCircle className="w-4 h-4" />
+            Assigned to You ({ticket.assignee})
+          </div>
+        );
+      } else {
+        // If assigned to someone else, just show the assignee name
+        return (
+          <div className="px-4 py-2 bg-green-100 text-green-700 border-2 border-green-300 rounded-lg flex items-center justify-center gap-2">
+            <CheckCircle className="w-4 h-4" />
+            Assigned to {ticket.assignee}
+          </div>
+        );
+      }
+    }
+
+    // Case 2: Admin - can assign to anyone or self (only if unassigned)
+    if (isAdmin && !isTicketAssigned) {
+      return (
+        <div className="grid gap-4">
+          <button
+            onClick={handleAssignToMe}
+            disabled={loading}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 transition-colors flex items-center justify-center gap-2"
+          >
+            <User className="w-4 h-4" />
+            {loading ? "Assigning..." : "Assign to Myself"}
+          </button>
+          
+          <button
+            onClick={() => setIsEditing(true)}
+            disabled={loading}
+            className="px-4 py-2 border-2 border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 disabled:bg-gray-100 transition-colors flex items-center justify-center gap-2"
+          >
+            <Edit3 className="w-4 h-4" />
+            Assign to Employee
+          </button>
+        </div>
+      );
+    }
+
+    // Case 3: Ticket creator - can only view assignment status (only if unassigned)
+    if (isTicketCreatedByCurrentUser && !isAdmin && !isTicketAssigned) {
+      return (
+        <div className="px-4 py-2 bg-yellow-100 text-yellow-700 border-2 border-yellow-300 rounded-lg text-center text-sm">
+          You cannot assign tickets created by you
+        </div>
+      );
+    }
+
+    // Case 4: Other users - can assign to themselves if ticket is unassigned
+    if (canAssignToSelf && !isTicketAssigned) {
+      return (
+        <button
+          onClick={handleAssignToMe}
+          disabled={loading}
+          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 transition-colors flex items-center justify-center gap-2"
+        >
+          <User className="w-4 h-4" />
+          {loading ? "Assigning..." : "Assign to Me"}
+        </button>
+      );
+    }
+
+    return null;
+  };
+
+  const renderStatusSection = () => {
+    if (!canModifyStatus || !isTicketAssigned) return null;
+
+    const availableOptions = getAvailableStatusOptions();
+    if (availableOptions.length === 0) return null;
+
+    return (
+      <div className="relative">
+        <button
+          onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+          disabled={loading}
+          className="w-full px-4 py-2 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 disabled:bg-gray-100 transition-colors flex items-center justify-between gap-2"
+        >
+          <span className="flex items-center gap-2">
+            <Edit3 className="w-4 h-4" />
+            Update Status
+          </span>
+          <ChevronDown className={`w-4 h-4 transition-transform ${showStatusDropdown ? 'rotate-180' : ''}`} />
+        </button>
+
+        {showStatusDropdown && (
+          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
+            {availableOptions.map((statusOption) => (
+              <button
+                key={statusOption.value}
+                onClick={() => handleStatusUpdate(statusOption.value)}
+                disabled={loading}
+                className="w-full px-4 py-2 text-left hover:bg-gray-100 disabled:bg-gray-50 transition-colors flex items-center gap-2 first:rounded-t-lg last:rounded-b-lg"
+              >
+                <CheckCircle className="w-4 h-4" />
+                {loading ? "Updating..." : `Mark as ${statusOption.label}`}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -201,60 +296,13 @@ function TicketManagement({
 
       {!isEditing ? (
         <div className="grid gap-4">
-          {/* For employees - Assign to Me button */}
-          {canAssignToSelf && (
-            <button
-              onClick={handleAssignToMe}
-              disabled={loading}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 transition-colors flex items-center justify-center gap-2"
-            >
-              <User className="w-4 h-4" />
-              {loading ? "Assigning..." : "Assign to Me"}
-            </button>
-          )}
+          {/* Assignment Section */}
+          {renderAssignmentSection()}
 
-          {/* Show assigned status for current user */}
-          {isAssignedToCurrentUser && (
-            <div className="px-4 py-2 bg-green-100 text-green-700 border-2 border-green-300 rounded-lg flex items-center justify-center gap-2">
-              <CheckCircle className="w-4 h-4" />
-              Assigned
-            </div>
-          )}
+          {/* Status Management Section */}
+          {renderStatusSection()}
 
-          {/* Warning for ticket creator */}
-          {isTicketCreatedByCurrentUser && !isAdmin && !isAssignedToCurrentUser && (
-            <div className="px-4 py-2 bg-yellow-100 text-yellow-700 border-2 border-yellow-300 rounded-lg text-center text-sm">
-              You cannot assign tickets created by you
-            </div>
-          )}
-
-          {/* Admin controls - only show if not assigned to current user */}
-          {isAdmin && !isAssignedToCurrentUser && (
-            <div className="grid gap-2">
-              <button
-                onClick={() => setIsEditing(true)}
-                disabled={loading}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 transition-colors flex items-center justify-center gap-2"
-              >
-                <Edit3 className="w-4 h-4" />
-                {loading ? "Loading..." : "Assign Ticket"}
-              </button>
-            </div>
-          )}
-
-          {/* Status management for assigned users - always show if user can modify */}
-          {canModifyStatus && (
-            <button
-              onClick={() => setIsEditing(true)}
-              disabled={loading}
-              className="px-4 py-2 border-2 border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 disabled:bg-gray-100 transition-colors flex items-center justify-center gap-2"
-            >
-              <Edit3 className="w-4 h-4" />
-              Update Status
-            </button>
-          )}
-
-          {/* Current Assignment Status */}
+          {/* Current Status Display */}
           <div className="p-3 bg-gray-50 rounded-lg border">
             <div className="text-sm text-gray-600 mb-1">Current Status:</div>
             <div className="font-medium text-gray-800">
@@ -269,11 +317,11 @@ function TicketManagement({
         </div>
       ) : (
         <div className="grid gap-4">
-          {/* Admin Assignment Dropdown */}
+          {/* Admin Employee Selection */}
           {isAdmin && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Assign to (Department: {ticket?.department || "All"}):
+                Assign to Employee (Department: {ticket?.department || "All"}):
               </label>
               <select
                 value={selectedAssigneeEmpId}
@@ -286,44 +334,13 @@ function TicketManagement({
                 disabled={loading}
               >
                 <option value="">Select Employee</option>
-                <option value={currentUser?.empId}>
-                  {currentUser?.name} (Myself)
-                </option>
-                {departmentEmployees
-                  .filter(emp => emp.empId !== currentUser?.empId)
-                  .map((employee) => (
-                    <option key={employee.empId} value={employee.empId}>
-                      {employee.name} ({employee.empId})
-                    </option>
-                  ))
-                }
-              </select>
-            </div>
-          )}
-
-          {/* Status Update Options */}
-          {canModifyStatus && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Update Status:
-              </label>
-              <div className="grid gap-2">
-                {getAvailableStatusOptions().map((statusOption) => (
-                  <button
-                    key={statusOption.value}
-                    onClick={() => handleStatusUpdate(statusOption.value)}
-                    disabled={loading || statusOption.value === ticket?.status}
-                    className={`px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                      statusOption.value === ticket?.status
-                        ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-                        : "bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400"
-                    }`}
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                    {loading ? "Updating..." : `Mark as ${statusOption.label}`}
-                  </button>
+                {departmentEmployees.map((employee) => (
+                  <option key={employee.empId} value={employee.empId}>
+                    {employee.name} ({employee.empId})
+                    {employee.empId === currentUser?.empId ? " - Me" : ""}
+                  </option>
                 ))}
-              </div>
+              </select>
             </div>
           )}
 
@@ -340,7 +357,12 @@ function TicketManagement({
               </button>
             )}
             <button
-              onClick={handleCancel}
+              onClick={() => {
+                setIsEditing(false);
+                setSelectedAssignee("");
+                setSelectedAssigneeEmpId("");
+                setError("");
+              }}
               disabled={loading}
               className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:bg-gray-100 transition-colors"
             >

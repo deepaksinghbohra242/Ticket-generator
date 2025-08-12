@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import React, { useState } from "react";
+import React from "react";
 import { 
   Ticket, 
   Users, 
@@ -19,14 +19,13 @@ function Sidebar({ user }) {
   const location = useLocation();
   const currentPath = location.pathname;
 
-  // 🔍 Match route against map
+  // Match route against map
   const resolvedPath = Object.keys(activeMatchMap).find(prefix =>
     currentPath.startsWith(prefix)
   );
   const effectivePath = resolvedPath ? activeMatchMap[resolvedPath] : currentPath;
 
   const adminNavItems = [
-    { path: '/dashboard/homepage', icon: Home, label: 'Dashboard'},
     { path: '/dashboard/tickets', icon: Ticket, label: 'All Tickets'},
     { path: '/dashboard/employeelist', icon: Users, label: 'Employees'},
   ];
@@ -39,7 +38,10 @@ function Sidebar({ user }) {
     { path: '/dashboard/closedticket', icon: Trash2, label: 'Closed Tickets'},
   ];
 
-  const navItems = user === 'admin' ? adminNavItems : userNavItems;
+  // ✅ Flatten array properly
+  const navItems = user === 'admin' 
+    ? [...adminNavItems, ...userNavItems] 
+    : userNavItems;
 
   const NavItem = ({ item }) => {
     const isActive = effectivePath.startsWith(item.path);
@@ -54,7 +56,7 @@ function Sidebar({ user }) {
         }`}
       >
         <div className="flex items-center gap-3">
-          <item.icon size={20} className="text-inherit" />
+          <item.icon size={20} />
           <span className="font-medium">{item.label}</span>
         </div>
       </NavLink>

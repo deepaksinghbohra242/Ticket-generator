@@ -11,8 +11,8 @@ export const ticketAPI = {
     return response.data;
   },
 
-  closedTickets: async () => {
-    const response = await apiClient.get(API_ENDPOINTS.TICKET.CLOSED);
+  closedTickets: async (id , payload) => {
+    const response = await apiClient.put(API_ENDPOINTS.TICKET.CLOSEDID(id),payload);
     return response.data;
   },
 
@@ -22,7 +22,7 @@ export const ticketAPI = {
   },
 
   fixedTicket: async (ticketId, payload) => {
-    const response = await apiClient.post(API_ENDPOINTS.TICKET.FIXED(ticketId), payload);
+    const response = await apiClient.put(API_ENDPOINTS.TICKET.FIXED(ticketId), payload);
     return response.data;
   },
 
