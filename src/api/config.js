@@ -55,6 +55,7 @@ export const API_ENDPOINTS = {
   },
   TICKET:{
     LIST:"/admin/tickets",
+    GETUSERS:"/employee/tickets/department-tickets",
     RAISED:"/employee/tickets/raised",
     CLOSED:"/employee/tickets/closed",
     ASSIGNED:"/employee/tickets/assigned",
@@ -67,6 +68,8 @@ export const API_ENDPOINTS = {
     UPDATE:(id , key) => `/admin/tickets/${id}/assignee?assignee=${key}`,
     CLOSEDID:(id)=>`/admin/tickets/close/${id}`,
     ASSIGNETOME: (id)=>`/employee/tickets/assign-to-me/${id}`,
-    UPDATETICKETASIGNNE: (id , eid)=> `/admin/tickets/${id}/assignee?assignee=${eid}`
+    UPDATETICKETASIGNNE: (id , eid)=> `/admin/tickets/${id}/assignee?assignee=${eid}`,
+    COMMENT: (id) => `/chat/${id}`,
+    SENDCOMMENT: (id) => `/tickets/${id}/messages`,
   }
 };

@@ -10,7 +10,7 @@ function ClosedTickets() {
   useEffect(() => {
     const fetchTickets = async () => {
       try {
-        const data = await ticketAPI.closedTickets();
+        const data = await ticketAPI.closeTicket();
         setTickets(data);
       } catch (error) {
         console.error("Failed to fetch tickets:", error);

@@ -78,7 +78,7 @@ function TicketsTable({ tickets = [], type }) {
                       >
                         <Eye className="w-4 h-4" />
                       </button>
-                      {!isAdmin && (
+                      {type === "raised" && (
                         <button
                           onClick={() => navigate(`/dashboard/editticket/${ticket.ticketNo}`)}
                           className="text-blue-600 hover:text-blue-800 transition"

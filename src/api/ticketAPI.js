@@ -51,13 +51,18 @@ export const ticketAPI = {
     return response.data;
   },
 
+  getUserTickets : async () => {
+    const response = await apiClient.get(API_ENDPOINTS.TICKET.GETUSERS);
+    return response.data;
+  },
+
   getUserTicket : async (id) => {
     const response = await apiClient.get(API_ENDPOINTS.TICKET.GETUSER(id));
     return response.data;
   },
 
   closeTicket: async (ticketId) => {
-    const response = await apiClient.put(API_ENDPOINTS.TICKET.CLOSED(ticketId));
+    const response = await apiClient.get(API_ENDPOINTS.TICKET.CLOSED);
     return response.data;
   },
 
@@ -73,6 +78,18 @@ export const ticketAPI = {
 
   updateTicketAssignee: async (ticketId, assigneeEmpId) => {
     const response = await apiClient.put(API_ENDPOINTS.TICKET.UPDATETICKETASIGNNE(ticketId , assigneeEmpId));
+    return response.data;
+  },
+
+  getCommentForTicket: async (ticketId) => {
+    const response = await apiClient.get(API_ENDPOINTS.TICKET.COMMENT(ticketId));
+    return response.data;
+  },
+
+  sendTicket: async (id , message) => {
+    const response = await apiClient.post(API_ENDPOINTS.TICKET.SENDCOMMENT(id), {
+      message: message,
+    });
     return response.data;
   },
 };

@@ -13,18 +13,17 @@ import {
 function Sidebar({ user }) {
   const location = useLocation();
   const currentPath = location.pathname;
-  const fromPath = location.state?.from; // ✅ Origin path from navigation
+  const fromPath = location.state?.from; 
 
-  // Use `fromPath` if available, else fallback to currentPath
   const effectivePath = fromPath || currentPath;
 
   const adminNavItems = [
-    { path: '/dashboard/tickets', icon: Ticket, label: 'All Tickets'},
     { path: '/dashboard/employeelist', icon: Users, label: 'Employees'},
   ];
 
   const userNavItems = [
     { path: '/dashboard/homepage', icon: Home, label: 'Dashboard'},
+    { path: '/dashboard/tickets', icon: Ticket, label: 'All Tickets'},
     { path: '/dashboard/newticket', icon: Plus, label: 'New Ticket' },
     { path: '/dashboard/raisedticket', icon: FileText, label: 'Raised Tickets' },
     { path: '/dashboard/assignedticket', icon: CheckSquare, label: 'Assigned Tickets'},

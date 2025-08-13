@@ -1,23 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import TicketsTable from "../../components/common/TicketsTable";
 import { ticketAPI } from "../../api/ticketAPI";
 import { Ticket } from 'lucide-react';
+import { useAuth } from "../../contexts/AuthContext";
 
 function Tickets() {
-  const temp = [
-    {
-      ticketNo: 8,
-      employeeName: "Pooja",
-      empId: "1004",
-      department: "Transport",
-      subject: "Long Cab Hours",
-      detailedMessage: "Cab Takes Long Routes",
-      assignee: null,
-      status: "OPEN",
-      priority: "HIGH",
-      createdAt: "2025-08-05T05:39:40.433008",
-    }
-  ];
+
+  const {isAdmin} = useAuth();
 
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,15 +14,17 @@ function Tickets() {
   useEffect(() => {
     const fetchTickets = async () => {
       try {
-        const data = await ticketAPI.getAllTickets();
-        if (data && data.length > 0) {
+        if(isAdmin){
+          const data = await ticketAPI.getAllTickets();
           setTickets(data);
-        } else {
-          setTickets(temp); 
+        }else{
+          const data = await ticketAPI.getUserTickets();
+          setTickets(data);
         }
+        
+
       } catch (error) {
         console.error("Failed to fetch tickets:", error);
-        setTickets(temp); 
       } finally {
         setLoading(false);
       }

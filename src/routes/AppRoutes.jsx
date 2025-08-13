@@ -44,7 +44,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-        <Route path="tickets" element={<ProtectedRoute allowedRoles={["admin"]}>
+        <Route path="tickets" element={<ProtectedRoute allowedRoles={["admin" , "user"]}>
               <Tickets />
             </ProtectedRoute>} />
 

@@ -16,7 +16,6 @@ function TicketView() {
   const navigate = useNavigate();
   
   const [ticket, setTicket] = useState(null);
-  const [comments, setComments] = useState([]);
   const [users, setUsers] = useState([]);
   const [departmentUsers, setDepartmentUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -82,9 +81,6 @@ function TicketView() {
     setTicket(updatedTicket);
   };
 
-  const updateComments = (updatedComments) => {
-    setComments(updatedComments);
-  };
 
   const handleGoBack = () => {
     navigate(-1);
@@ -121,11 +117,10 @@ function TicketView() {
           <div className="xl:col-span-2 space-y-6">
             <TicketDetails ticket={ticket} />
             <CommentsSection 
-              comments={comments}
-              onUpdateComments={updateComments}
               ticketId={id}
               currentUser={user}
               isAdmin={isAdmin}
+              ticketDetails={ticket}
             />
           </div>
 

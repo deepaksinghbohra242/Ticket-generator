@@ -5,8 +5,6 @@ import { ticketAPI } from "../../api/ticketAPI";
 
 const statusOptions = [
   { value: "OPEN", label: "Open" },
-  { value: "ASSIGNED", label: "Assigned" },
-  { value: "IN_PROGRESS", label: "In Progress" },
   { value: "FIXED", label: "Fixed" },
   { value: "CLOSED", label: "Closed" },
 ];
@@ -26,17 +24,25 @@ function TicketManagement({
   const [error, setError] = useState("");
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
-  // Determine user permissions and ticket state
+  console.log(ticket, currentUser);
+
+  // Fixed: Check if current user is assigned to the ticket using assignee field
   const isAssignedToCurrentUser = currentUser && ticket && (
     currentUser.empId === ticket.assignee
   );
 
+  // Check if current user created the ticket
   const isTicketCreatedByCurrentUser = currentUser && ticket && (
     currentUser.empId === ticket.empId 
   );
   
-  const canAssignToSelf = !isAdmin && !isTicketCreatedByCurrentUser && !isAssignedToCurrentUser;
-  const canModifyStatus = isAssignedToCurrentUser || isAdmin;
+  // Users can only assign to themselves if ticket is unassigned and they didn't create it
+  const canAssignToSelf = !isAdmin && !isTicketCreatedByCurrentUser && !ticket?.assignee;
+  
+  // Admins can modify status of any ticket, regular users only if assigned
+  const canModifyStatus = isAdmin || isAssignedToCurrentUser;
+  
+  // Check if ticket is assigned
   const isTicketAssigned = ticket?.assignee;
 
   useEffect(() => {
@@ -76,8 +82,7 @@ function TicketManagement({
 
       const updatedTicket = {
         ...ticket,
-        assignee: currentUser.name,
-        assigneeEmpId: currentUser.empId,
+        assignee: currentUser.empId, // Store empId as assignee
         status: "ASSIGNED",
       };
 
@@ -97,12 +102,9 @@ function TicketManagement({
 
       await ticketAPI.updateTicketAssignee(ticketId, selectedAssigneeEmpId);
 
-      const selectedEmployee = departmentEmployees.find(emp => emp.empId === selectedAssigneeEmpId);
-      
       const updatedTicket = {
         ...ticket,
-        assignee: selectedEmployee?.name || "",
-        assigneeEmpId: selectedAssigneeEmpId,
+        assignee: selectedAssigneeEmpId, // Store empId as assignee
         status: selectedAssigneeEmpId ? "ASSIGNED" : "OPEN",
       };
 
@@ -123,15 +125,20 @@ function TicketManagement({
       setLoading(true);
       setError("");
 
-      if (newStatus === "FIXED" && isAssignedToCurrentUser && !isAdmin) {
+      // Use specific API endpoints based on status change
+      if (newStatus === "FIXED") {
         await ticketAPI.fixedTicket(ticket.ticketNo || ticketId);
-      } else if (newStatus === "CLOSED" && isAdmin && ticket.status === "FIXED") {
+      } else if (newStatus === "CLOSED") {
         await ticketAPI.closedTickets(ticket.ticketNo || ticketId);
       } else if (newStatus === "OPEN" && ticket.status === "CLOSED") {
         await ticketAPI.reopenTicket(ticket.ticketNo || ticketId);
       } else {
-        console.warn("Status change not supported by current API");
-        return;
+        // For other status changes, try a generic update method if available
+        if (ticketAPI.updateTicketStatus) {
+          await ticketAPI.updateTicketStatus(ticket.ticketNo || ticketId, newStatus);
+        } else {
+          throw new Error(`Status change to ${newStatus} is not supported`);
+        }
       }
 
       const updatedTicket = {
@@ -143,7 +150,7 @@ function TicketManagement({
       setShowStatusDropdown(false);
     } catch (error) {
       console.error("Failed to update status:", error);
-      setError("Failed to update ticket status");
+      setError(`Failed to update ticket status: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -152,32 +159,85 @@ function TicketManagement({
   const getAvailableStatusOptions = () => {
     const currentStatus = ticket?.status || "OPEN";
     
-    if (!isAdmin && isAssignedToCurrentUser) {
-      return statusOptions.filter(option => 
-        option.value !== currentStatus && 
-        (option.value === "FIXED" || option.value === "IN_PROGRESS")
-      );
-    } else if (isAdmin) {
-      if (currentStatus === "FIXED") {
-        return statusOptions.filter(option => 
-          option.value === "CLOSED" || option.value === "OPEN"
-        );
-      }
-      return statusOptions.filter(option => option.value !== currentStatus);
+    // Admins can change status of any ticket, regular users only if assigned
+    if (!isAdmin && !isAssignedToCurrentUser) {
+      return [];
     }
     
-    return [];
+    // Define valid status transitions
+    const validTransitions = {
+      "OPEN": ["ASSIGNED", "IN_PROGRESS", "FIXED"],
+      "ASSIGNED": ["IN_PROGRESS", "FIXED", "CLOSED"],
+      "IN_PROGRESS": ["FIXED", "ASSIGNED", "CLOSED"],  
+      "FIXED": ["IN_PROGRESS", "CLOSED"],
+      "CLOSED": ["OPEN"] // Allow reopening for assigned users
+    };
+
+    // Admins get full control over all status transitions
+    if (isAdmin) {
+      const adminTransitions = {
+        "OPEN": ["ASSIGNED", "IN_PROGRESS", "FIXED", "CLOSED"],
+        "ASSIGNED": ["OPEN", "IN_PROGRESS", "FIXED", "CLOSED"],
+        "IN_PROGRESS": ["OPEN", "ASSIGNED", "FIXED", "CLOSED"],
+        "FIXED": ["OPEN", "ASSIGNED", "IN_PROGRESS", "CLOSED"],
+        "CLOSED": ["OPEN", "ASSIGNED", "IN_PROGRESS", "FIXED"]
+      };
+      const allowedTransitions = adminTransitions[currentStatus] || [];
+      return statusOptions.filter(option => 
+        option.value !== currentStatus && 
+        allowedTransitions.includes(option.value)
+      );
+    }
+
+    // Regular assigned users have limited transitions
+    const allowedTransitions = validTransitions[currentStatus] || [];
+    return statusOptions.filter(option => 
+      option.value !== currentStatus && 
+      allowedTransitions.includes(option.value)
+    );
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      "OPEN": "bg-red-100 text-red-700 border-red-300",
+      "ASSIGNED": "bg-blue-100 text-blue-700 border-blue-300",
+      "IN_PROGRESS": "bg-yellow-100 text-yellow-700 border-yellow-300",
+      "FIXED": "bg-green-100 text-green-700 border-green-300",
+      "CLOSED": "bg-gray-100 text-gray-700 border-gray-300"
+    };
+    return colors[status] || "bg-gray-100 text-gray-700 border-gray-300";
+  };
+
+  // Get assignee name for display
+  const getAssigneeName = () => {
+    if (!ticket?.assignee) return null;
+    
+    // If admin, try to find the name from department employees
+    if (isAdmin && departmentEmployees.length > 0) {
+      const assignedEmployee = departmentEmployees.find(emp => emp.empId === ticket.assignee);
+      return assignedEmployee?.name || ticket.assignee;
+    }
+    
+    // If current user is assigned
+    if (ticket.assignee === currentUser?.empId) {
+      return currentUser.name;
+    }
+    
+    // Fallback to empId if name not found
+    return ticket.assignee;
   };
 
   const renderAssignmentSection = () => {
     // Case 1: Ticket is already assigned
     if (isTicketAssigned) {
+      const assigneeName = getAssigneeName();
+      
       if (isAssignedToCurrentUser) {
         // If assigned to current user, show their name with emphasis
         return (
           <div className="px-4 py-2 bg-blue-100 text-blue-700 border-2 border-blue-300 rounded-lg flex items-center justify-center gap-2">
             <CheckCircle className="w-4 h-4" />
-            Assigned to You ({ticket.assignee})
+            Assigned to You ({assigneeName})
           </div>
         );
       } else {
@@ -185,7 +245,7 @@ function TicketManagement({
         return (
           <div className="px-4 py-2 bg-green-100 text-green-700 border-2 border-green-300 rounded-lg flex items-center justify-center gap-2">
             <CheckCircle className="w-4 h-4" />
-            Assigned to {ticket.assignee}
+            Assigned to {assigneeName}
           </div>
         );
       }
@@ -243,7 +303,8 @@ function TicketManagement({
   };
 
   const renderStatusSection = () => {
-    if (!canModifyStatus || !isTicketAssigned) return null;
+    // Only show status section if user can modify status
+    if (!canModifyStatus) return null;
 
     const availableOptions = getAvailableStatusOptions();
     if (availableOptions.length === 0) return null;
@@ -299,17 +360,17 @@ function TicketManagement({
           {/* Assignment Section */}
           {renderAssignmentSection()}
 
-          {/* Status Management Section */}
+          {/* Status Management Section - Only for assigned user */}
           {renderStatusSection()}
 
           {/* Current Status Display */}
           <div className="p-3 bg-gray-50 rounded-lg border">
             <div className="text-sm text-gray-600 mb-1">Current Status:</div>
             <div className="font-medium text-gray-800">
-              {ticket?.assignee ? `Assigned to ${ticket.assignee}` : "Unassigned"}
+              {ticket?.assignee ? `Assigned to ${getAssigneeName()}` : "Unassigned"}
             </div>
             <div className="text-sm text-gray-600 mt-1">
-              Status: <span className="font-medium capitalize">
+              Status: <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(ticket?.status)}`}>
                 {ticket?.status?.toLowerCase().replace("_", " ") || "Open"}
               </span>
             </div>

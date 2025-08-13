@@ -1,4 +1,3 @@
-// components/ticket/CommentForm.jsx
 import React from "react";
 import { Send } from "lucide-react";
 
@@ -19,6 +18,9 @@ function CommentForm({ newComment, onCommentChange, onSubmit }) {
               }
             }}
           />
+          <p className="text-xs text-gray-500 mt-1">
+            Press Ctrl+Enter to send
+          </p>
         </div>
         <button
           onClick={onSubmit}
