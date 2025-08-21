@@ -46,7 +46,6 @@ export const API_ENDPOINTS = {
     LOGIN: "/auth/login",
     LOGOUT: "/auth/logout",
     VERIFY_TOKEN: "/auth/me",
-    UPDATE_PROFILE: "/auth/update-profile",
   },
   ADMIN:{
     EMPLOYEES: "/admin/get_employees",
@@ -71,5 +70,6 @@ export const API_ENDPOINTS = {
     UPDATETICKETASIGNNE: (id , eid)=> `/admin/tickets/${id}/assignee?assignee=${eid}`,
     COMMENT: (id) => `/chat/${id}`,
     SENDCOMMENT: (id) => `/tickets/${id}/messages`,
+    CC : "/employee/tickets/cc-tickets"
   }
 };

@@ -36,7 +36,9 @@ export const ticketAPI = {
       subject : ticket.subject,
       department : ticket.department,
       detailedMessage : ticket.detailedMessage,
-      priority : ticket.priority
+      priority : ticket.priority,
+      ccEmployeeIds : ticket.ccEmployeeIds,
+      attachmentLink: ticket.attachmentLink,
     });
     return response.data;
   },
@@ -92,4 +94,9 @@ export const ticketAPI = {
     });
     return response.data;
   },
+
+  ccTicket: async () => {
+    const response = await apiClient.get(API_ENDPOINTS.TICKET.CC);
+    return response.data;
+  }
 };

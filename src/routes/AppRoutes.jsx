@@ -11,6 +11,7 @@ import HomePage from "../components/dashboard/HomePage";
 import ClosedTickets from "../pages/employee/ClosedTickets";
 import ProtectedRoute from "../components/common/ProtectedRoute";
 import TicketView from "../pages/TicketView";
+import CcEmployee from "../pages/employee/CcEmployee";
 
 function AppRoutes() {
   return (
@@ -31,6 +32,7 @@ function AppRoutes() {
         <Route path="homepage" element={<HomePage />} />
         <Route path="newticket" element={<NewTicket />} />
         <Route path="raisedticket" element={<RaisedTickets />} />
+        <Route path="cc" element={<CcEmployee />} />
         <Route path="assignedticket" element={<AssignedTickets />} />
         <Route path="closedticket" element={<ClosedTickets />} />
         <Route path="editticket/:id" element={<NewTicket />} />

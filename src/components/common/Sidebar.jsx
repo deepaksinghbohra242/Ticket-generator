@@ -28,6 +28,7 @@ function Sidebar({ user }) {
     { path: '/dashboard/raisedticket', icon: FileText, label: 'Raised Tickets' },
     { path: '/dashboard/assignedticket', icon: CheckSquare, label: 'Assigned Tickets'},
     { path: '/dashboard/closedticket', icon: Trash2, label: 'Closed Tickets'},
+    { path: '/dashboard/cc', icon: Users, label: 'CC to me' }
   ];
 
   const navItems = user === 'admin' 
@@ -56,7 +57,6 @@ function Sidebar({ user }) {
   return (
     <div className="fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-white shadow-xl border-r border-gray-200 z-40">
       <div className="p-6">
-        {/* Role Badge */}
         <div className="mb-6">
           <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
             user === 'admin' 
@@ -70,7 +70,6 @@ function Sidebar({ user }) {
           </div>
         </div>
 
-        {/* Navigation */}
         <nav className="space-y-2">
           {navItems.map((item) => (
             <NavItem key={item.path} item={item} />

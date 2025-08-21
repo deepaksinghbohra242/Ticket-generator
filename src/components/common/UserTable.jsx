@@ -7,8 +7,6 @@ function UserTable({ employees = [] }) {
 
   return (
     <div className="mb-12">
-      
-
       <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
         <div className="overflow-x-auto">
           <table className="w-full">

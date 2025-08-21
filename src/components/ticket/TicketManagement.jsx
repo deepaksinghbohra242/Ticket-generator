@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { User, Edit3, CheckCircle, AlertCircle, ChevronDown } from "lucide-react";
+import {
+  User,
+  Edit3,
+  CheckCircle,
+  AlertCircle,
+  ChevronDown,
+} from "lucide-react";
 import { adminAPI } from "../../api/adminAPI";
 import { ticketAPI } from "../../api/ticketAPI";
 
@@ -9,12 +15,12 @@ const statusOptions = [
   { value: "CLOSED", label: "Closed" },
 ];
 
-function TicketManagement({ 
-  ticket, 
-  onUpdateTicket, 
-  currentUser, 
-  isAdmin, 
-  ticketId 
+function TicketManagement({
+  ticket,
+  onUpdateTicket,
+  currentUser,
+  isAdmin,
+  ticketId,
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedAssignee, setSelectedAssignee] = useState("");
@@ -27,21 +33,20 @@ function TicketManagement({
   console.log(ticket, currentUser);
 
   // Fixed: Check if current user is assigned to the ticket using assignee field
-  const isAssignedToCurrentUser = currentUser && ticket && (
-    currentUser.empId === ticket.assignee
-  );
+  const isAssignedToCurrentUser =
+    currentUser && ticket && currentUser.empId === ticket.assignee;
 
   // Check if current user created the ticket
-  const isTicketCreatedByCurrentUser = currentUser && ticket && (
-    currentUser.empId === ticket.empId 
-  );
-  
+  const isTicketCreatedByCurrentUser =
+    currentUser && ticket && currentUser.empId === ticket.empId;
+
   // Users can only assign to themselves if ticket is unassigned and they didn't create it
-  const canAssignToSelf = !isAdmin && !isTicketCreatedByCurrentUser && !ticket?.assignee;
-  
+  const canAssignToSelf =
+    !isAdmin && !isTicketCreatedByCurrentUser && !ticket?.assignee;
+
   // Admins can modify status of any ticket, regular users only if assigned
   const canModifyStatus = isAdmin || isAssignedToCurrentUser;
-  
+
   // Check if ticket is assigned
   const isTicketAssigned = ticket?.assignee;
 
@@ -55,11 +60,11 @@ function TicketManagement({
     try {
       setLoading(true);
       const employees = await adminAPI.getEmployees();
-      
-      const filteredEmployees = ticket?.department 
-        ? employees.filter(emp => emp.department === ticket.department)
+
+      const filteredEmployees = ticket?.department
+        ? employees.filter((emp) => emp.department === ticket.department)
         : employees;
-      
+
       setDepartmentEmployees(filteredEmployees || []);
     } catch (error) {
       console.error("Failed to fetch employees:", error);
@@ -94,6 +99,37 @@ function TicketManagement({
       setLoading(false);
     }
   };
+
+
+const handleUnAssign = async () => {
+  try {
+    setLoading(true);
+    setError("");
+
+    // Call API to unassign the ticket
+    // You might need to add this method to your ticketAPI if it doesn't exist
+    if (ticketAPI.unassignTicket) {
+      await ticketAPI.unassignTicket(ticket.ticketNo || ticketId);
+    } else {
+      // Alternative: Use updateTicketAssignee with null/empty value
+      await ticketAPI.updateTicketAssignee(ticketId, null);
+    }
+
+    // Update the ticket state to reflect unassignment
+    const updatedTicket = {
+      ...ticket,
+      assignee: null, // Clear the assignee
+      status: "OPEN", // Reset status to OPEN when unassigned
+    };
+
+    onUpdateTicket(updatedTicket);
+  } catch (error) {
+    console.error("Failed to unassign ticket:", error);
+    setError("Failed to unassign ticket");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleAdminAssignment = async () => {
     try {
@@ -135,7 +171,10 @@ function TicketManagement({
       } else {
         // For other status changes, try a generic update method if available
         if (ticketAPI.updateTicketStatus) {
-          await ticketAPI.updateTicketStatus(ticket.ticketNo || ticketId, newStatus);
+          await ticketAPI.updateTicketStatus(
+            ticket.ticketNo || ticketId,
+            newStatus
+          );
         } else {
           throw new Error(`Status change to ${newStatus} is not supported`);
         }
@@ -158,52 +197,54 @@ function TicketManagement({
 
   const getAvailableStatusOptions = () => {
     const currentStatus = ticket?.status || "OPEN";
-    
+
     // Admins can change status of any ticket, regular users only if assigned
     if (!isAdmin && !isAssignedToCurrentUser) {
       return [];
     }
-    
+
     // Define valid status transitions
     const validTransitions = {
-      "OPEN": ["ASSIGNED", "IN_PROGRESS", "FIXED"],
-      "ASSIGNED": ["IN_PROGRESS", "FIXED", "CLOSED"],
-      "IN_PROGRESS": ["FIXED", "ASSIGNED", "CLOSED"],  
-      "FIXED": ["IN_PROGRESS", "CLOSED"],
-      "CLOSED": ["OPEN"] // Allow reopening for assigned users
+      OPEN: ["ASSIGNED", "IN_PROGRESS", "FIXED"],
+      ASSIGNED: ["IN_PROGRESS", "FIXED", "CLOSED"],
+      IN_PROGRESS: ["FIXED", "ASSIGNED", "CLOSED"],
+      FIXED: ["IN_PROGRESS", "CLOSED"],
+      CLOSED: ["OPEN"], // Allow reopening for assigned users
     };
 
     // Admins get full control over all status transitions
     if (isAdmin) {
       const adminTransitions = {
-        "OPEN": ["ASSIGNED", "IN_PROGRESS", "FIXED", "CLOSED"],
-        "ASSIGNED": ["OPEN", "IN_PROGRESS", "FIXED", "CLOSED"],
-        "IN_PROGRESS": ["OPEN", "ASSIGNED", "FIXED", "CLOSED"],
-        "FIXED": ["OPEN", "ASSIGNED", "IN_PROGRESS", "CLOSED"],
-        "CLOSED": ["OPEN", "ASSIGNED", "IN_PROGRESS", "FIXED"]
+        OPEN: ["ASSIGNED", "IN_PROGRESS", "FIXED", "CLOSED"],
+        ASSIGNED: ["OPEN", "IN_PROGRESS", "FIXED", "CLOSED"],
+        IN_PROGRESS: ["OPEN", "ASSIGNED", "FIXED", "CLOSED"],
+        FIXED: ["OPEN", "ASSIGNED", "IN_PROGRESS", "CLOSED"],
+        CLOSED: ["OPEN", "ASSIGNED", "IN_PROGRESS", "FIXED"],
       };
       const allowedTransitions = adminTransitions[currentStatus] || [];
-      return statusOptions.filter(option => 
-        option.value !== currentStatus && 
-        allowedTransitions.includes(option.value)
+      return statusOptions.filter(
+        (option) =>
+          option.value !== currentStatus &&
+          allowedTransitions.includes(option.value)
       );
     }
 
     // Regular assigned users have limited transitions
     const allowedTransitions = validTransitions[currentStatus] || [];
-    return statusOptions.filter(option => 
-      option.value !== currentStatus && 
-      allowedTransitions.includes(option.value)
+    return statusOptions.filter(
+      (option) =>
+        option.value !== currentStatus &&
+        allowedTransitions.includes(option.value)
     );
   };
 
   const getStatusColor = (status) => {
     const colors = {
-      "OPEN": "bg-red-100 text-red-700 border-red-300",
-      "ASSIGNED": "bg-blue-100 text-blue-700 border-blue-300",
-      "IN_PROGRESS": "bg-yellow-100 text-yellow-700 border-yellow-300",
-      "FIXED": "bg-green-100 text-green-700 border-green-300",
-      "CLOSED": "bg-gray-100 text-gray-700 border-gray-300"
+      OPEN: "bg-red-100 text-red-700 border-red-300",
+      ASSIGNED: "bg-blue-100 text-blue-700 border-blue-300",
+      IN_PROGRESS: "bg-yellow-100 text-yellow-700 border-yellow-300",
+      FIXED: "bg-green-100 text-green-700 border-green-300",
+      CLOSED: "bg-gray-100 text-gray-700 border-gray-300",
     };
     return colors[status] || "bg-gray-100 text-gray-700 border-gray-300";
   };
@@ -211,18 +252,20 @@ function TicketManagement({
   // Get assignee name for display
   const getAssigneeName = () => {
     if (!ticket?.assignee) return null;
-    
+
     // If admin, try to find the name from department employees
     if (isAdmin && departmentEmployees.length > 0) {
-      const assignedEmployee = departmentEmployees.find(emp => emp.empId === ticket.assignee);
+      const assignedEmployee = departmentEmployees.find(
+        (emp) => emp.empId === ticket.assignee
+      );
       return assignedEmployee?.name || ticket.assignee;
     }
-    
+
     // If current user is assigned
     if (ticket.assignee === currentUser?.empId) {
       return currentUser.name;
     }
-    
+
     // Fallback to empId if name not found
     return ticket.assignee;
   };
@@ -231,22 +274,24 @@ function TicketManagement({
     // Case 1: Ticket is already assigned
     if (isTicketAssigned) {
       const assigneeName = getAssigneeName();
-      
+
       if (isAssignedToCurrentUser) {
         // If assigned to current user, show their name with emphasis
         return (
-          <div className="px-4 py-2 bg-blue-100 text-blue-700 border-2 border-blue-300 rounded-lg flex items-center justify-center gap-2">
+          <button className="px-4 py-2 bg-blue-100 text-blue-700 border-2 border-blue-300 rounded-lg flex items-center justify-center gap-2"
+            onClick={handleUnAssign}>
             <CheckCircle className="w-4 h-4" />
-            Assigned to You ({assigneeName})
-          </div>
+            Unassign ({assigneeName})
+          </button>
         );
       } else {
         // If assigned to someone else, just show the assignee name
         return (
-          <div className="px-4 py-2 bg-green-100 text-green-700 border-2 border-green-300 rounded-lg flex items-center justify-center gap-2">
+          <button className="px-4 py-2 bg-green-100 text-green-700 border-2 border-green-300 rounded-lg flex items-center justify-center gap-2"
+            onClick={handleUnAssign}>
             <CheckCircle className="w-4 h-4" />
             Assigned to {assigneeName}
-          </div>
+          </button>
         );
       }
     }
@@ -263,7 +308,7 @@ function TicketManagement({
             <User className="w-4 h-4" />
             {loading ? "Assigning..." : "Assign to Myself"}
           </button>
-          
+
           <button
             onClick={() => setIsEditing(true)}
             disabled={loading}
@@ -320,7 +365,11 @@ function TicketManagement({
             <Edit3 className="w-4 h-4" />
             Update Status
           </span>
-          <ChevronDown className={`w-4 h-4 transition-transform ${showStatusDropdown ? 'rotate-180' : ''}`} />
+          <ChevronDown
+            className={`w-4 h-4 transition-transform ${
+              showStatusDropdown ? "rotate-180" : ""
+            }`}
+          />
         </button>
 
         {showStatusDropdown && (
@@ -367,10 +416,17 @@ function TicketManagement({
           <div className="p-3 bg-gray-50 rounded-lg border">
             <div className="text-sm text-gray-600 mb-1">Current Status:</div>
             <div className="font-medium text-gray-800">
-              {ticket?.assignee ? `Assigned to ${getAssigneeName()}` : "Unassigned"}
+              {ticket?.assignee
+                ? `Assigned to ${getAssigneeName()}`
+                : "Unassigned"}
             </div>
             <div className="text-sm text-gray-600 mt-1">
-              Status: <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(ticket?.status)}`}>
+              Status:{" "}
+              <span
+                className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                  ticket?.status
+                )}`}
+              >
                 {ticket?.status?.toLowerCase().replace("_", " ") || "Open"}
               </span>
             </div>
@@ -388,7 +444,9 @@ function TicketManagement({
                 value={selectedAssigneeEmpId}
                 onChange={(e) => {
                   setSelectedAssigneeEmpId(e.target.value);
-                  const selectedEmp = departmentEmployees.find(emp => emp.empId === e.target.value);
+                  const selectedEmp = departmentEmployees.find(
+                    (emp) => emp.empId === e.target.value
+                  );
                   setSelectedAssignee(selectedEmp?.name || "");
                 }}
                 className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"

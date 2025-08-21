@@ -9,13 +9,12 @@ function TicketsTable({ tickets = [], type }) {
 
   const headers = ['Ticket ID', 'Status', 'Priority', 'Department', 'Assignee', 'Created At', 'Actions'];
 
-  // Determine the correct "from" path based on ticket list type
   const getFromPath = () => {
     if (isAdmin && type === 'all') return '/dashboard/tickets';
     if (type === 'assigned') return '/dashboard/assignedticket';
     if (type === 'closed') return '/dashboard/closedticket';
     if (type === 'raised') return '/dashboard/raisedticket';
-    return '/dashboard/homepage'; // fallback
+    return '/dashboard/homepage'; 
   };
 
   const handleTicketRouting = (id) => {

@@ -17,16 +17,35 @@ function NewTicket() {
     priority: "MEDIUM",
     status: "OPEN",
     assignedTo: "",
+    ccEmployeeIds: "", // Comma-separated string of employee IDs
+    attachmentLink: "",
   });
 
   const [employees, setEmployees] = useState([]);
+  const [allEmployees, setAllEmployees] = useState([]); // For CC dropdown
   const [subjects, setSubjects] = useState([]);
+  const [selectedCCEmployees, setSelectedCCEmployees] = useState([]); // For managing selected CC employees
+  const [ccSearchTerm, setCCSearchTerm] = useState(""); // For searching CC employees
+  const [showCCDropdown, setShowCCDropdown] = useState(false); // Control dropdown visibility
 
   useEffect(() => {
     const fetchData = async () => {
+      // Fetch all employees for CC dropdown
+      try {
+        const response = await fetch("http://localhost:8080/api/employee/tickets/dropdown");
+        const allEmps = await response.json();
+        setAllEmployees(allEmps);
+      } catch (err) {
+        console.error("Error fetching all employees:", err);
+      }
+
       if (isEditMode) {
         try {
           const data = await ticketAPI.getUserTicket(id);
+
+          // Parse ccEmployeeIds from comma-separated string to array
+          const ccIds = data.ccEmployeeIds ? data.ccEmployeeIds.split(",") : [];
+          setSelectedCCEmployees(ccIds);
 
           setFormData({
             subject: data.subject,
@@ -35,9 +54,11 @@ function NewTicket() {
             priority: data.priority,
             status: data.status,
             assignedTo: data.assignedTo || "",
+            ccEmployeeIds: data.ccEmployeeIds || "",
+            attachmentLink: data.attachmentLink || "",
           });
 
-          // Fetch subjects for the prefilled department
+          
           const subs = await ticketAPI.getSubjects(data.department);
           setSubjects(subs);
         } catch (err) {
@@ -70,7 +91,43 @@ function NewTicket() {
       }
     }
   };
+
+  const handleCCChange = (employeeId) => {
+    let updatedSelection;
+    if (selectedCCEmployees.includes(employeeId)) {
+      // Remove employee if already selected
+      updatedSelection = selectedCCEmployees.filter(id => id !== employeeId);
+    } else {
+      // Add employee if not selected
+      updatedSelection = [...selectedCCEmployees, employeeId];
+    }
+    
+    setSelectedCCEmployees(updatedSelection);
+    
+    // Update formData with comma-separated string
+    setFormData(prev => ({
+      ...prev,
+      ccEmployeeIds: updatedSelection.join(",")
+    }));
+  };
+
+  const getSelectedEmployeeNames = () => {
+    return selectedCCEmployees
+      .map(id => {
+        const emp = allEmployees.find(e => e.empId === id);
+        return emp ? emp.name : id;
+      })
+      .join(", ");
+  };
+
+  // Filter employees based on search term
+  const filteredEmployees = allEmployees.filter(employee =>
+    employee.name.toLowerCase().includes(ccSearchTerm.toLowerCase()) ||
+    employee.empId.toLowerCase().includes(ccSearchTerm.toLowerCase())
+  );
+
   console.log(formData);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -188,6 +245,114 @@ function NewTicket() {
             <option value="MEDIUM">Medium</option>
             <option value="HIGH">High</option>
           </select>
+        </div>
+
+        {/* CC Employees Dropdown with Search */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            CC Employees
+          </label>
+          <div className="relative">
+            {/* Search input with selected employees */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder={selectedCCEmployees.length > 0 
+                  ? `${selectedCCEmployees.length} employee(s) selected` 
+                  : "Search and select employees to CC..."
+                }
+                value={ccSearchTerm}
+                onChange={(e) => setCCSearchTerm(e.target.value)}
+                onFocus={() => setShowCCDropdown(true)}
+                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              />
+              {selectedCCEmployees.length > 0 && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                    {selectedCCEmployees.length}
+                  </span>
+                </div>
+              )}
+            </div>
+            
+            {/* Selected employees tags (below search input) */}
+            {selectedCCEmployees.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2 p-2 bg-gray-50 rounded-lg">
+                {selectedCCEmployees.map(empId => {
+                  const employee = allEmployees.find(emp => emp.empId === empId);
+                  return (
+                    <span
+                      key={empId}
+                      className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                    >
+                      {employee ? employee.name : empId}
+                      <button
+                        type="button"
+                        onClick={() => handleCCChange(empId)}
+                        className="text-blue-600 hover:text-blue-800 ml-1"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+            
+            {/* Dropdown with filtered employees */}
+            {showCCDropdown && (
+              <div className="mt-1 max-h-48 overflow-y-auto border border-gray-200 rounded-lg bg-white shadow-lg z-10 absolute w-full">
+                {filteredEmployees.length > 0 ? (
+                  filteredEmployees.map((employee) => (
+                    <label
+                      key={employee.empId}
+                      className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedCCEmployees.includes(employee.empId)}
+                        onChange={() => handleCCChange(employee.empId)}
+                        className="mr-3 text-blue-600 focus:ring-blue-400 rounded"
+                      />
+                      <span className="text-sm text-gray-700">
+                        {employee.name} ({employee.empId})
+                      </span>
+                    </label>
+                  ))
+                ) : (
+                  <div className="px-3 py-2 text-sm text-gray-500">
+                    No employees found matching "{ccSearchTerm}"
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Close dropdown when clicking outside */}
+            {showCCDropdown && (
+              <div 
+                className="fixed inset-0 z-0" 
+                onClick={() => setShowCCDropdown(false)}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Attachment Link */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Attachment Link
+          </label>
+          <input
+            type="url"
+            name="attachmentLink"
+            placeholder="https://drive.google.com/file/d/... or other file link"
+            value={formData.attachmentLink}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Optional: Provide a link to any supporting documents or files
+          </p>
         </div>
 
         {/* Status (edit only) */}

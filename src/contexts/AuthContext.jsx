@@ -130,6 +130,7 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: !!user,
     isAdmin: user?.role?.toLowerCase() === "admin",
     isUser: user?.role?.toLowerCase() === "user",
+    isSuperAdmin: user?.role?.toLowerCase() === "superadmin",
     clearError: () => setError(null),
   };
 
