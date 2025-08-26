@@ -98,5 +98,10 @@ export const ticketAPI = {
   ccTicket: async () => {
     const response = await apiClient.get(API_ENDPOINTS.TICKET.CC);
     return response.data;
-  }
+  },
+
+  updateTicketStatus: async (ticketId, status) => {
+    const response = await apiClient.put(API_ENDPOINTS.TICKET.UPDATESTATUS(ticketId , status));
+    return response.data;
+  },
 };

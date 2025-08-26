@@ -3,17 +3,23 @@ import { Link } from "react-router-dom";
 import UserTable from "../../components/common/UserTable";
 import { adminAPI } from "../../api/adminAPI";
 import { User } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 function EmployeeList() {
   const [employees, setEmployees] = useState([]);
+  const { isSuperAdmin } = useAuth();
 
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const data = await adminAPI.getEmployees();
-        setEmployees(data);
+        if (isSuperAdmin) {
+          const data = await adminAPI.getSuperEmployees();
+          setEmployees(data);
+        } else {
+          const data = await adminAPI.getEmployees();
+          setEmployees(data);
+        }
       } catch (error) {
-        console.error("Failed to fetch employees:", error);
       }
     };
 

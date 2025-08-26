@@ -51,9 +51,21 @@ export const API_ENDPOINTS = {
     EMPLOYEES: "/admin/get_employees",
     ADD: "/admin/add_employees",
     SUBJECT: "/admin/tickets/add_subjects",
+    DEPARTMENTS: "/employee/tickets/departments",
+    SUBJECTS: "/employee/tickets/get_subjects",
+    EDIT_SUBJECT: "/admin/edit-subject",
+    DELETE_SUBJECT: "/admin/{department}/subjects/{subject}",
+    ADD_DEPARTMENT: "/superadmin/add_department",
+    DELETE_DEPARTMENT: "/superadmin/{department}",
+    SUPER_EMPLOYEES: "/superadmin/employees",
+    ADD_SUBJECT: `/admin/tickets/add_subjects`,
+    SUPER_ADD_SUBJECT : '/superadmin/add_subjects',
+    EMPLOYEE_BY_ID: (empId) => `/employeeticket/${empId}`,
+    UPDATE_EMPLOYEE: (empId) => `/admin/edit/${empId}`,
+    EMPLOYEE_NAMES: "/employeeticket/names",
   },
   TICKET:{
-    LIST:"/admin/tickets",
+    LIST:"/superadmin/tickets",
     GETUSERS:"/employee/tickets/department-tickets",
     RAISED:"/employee/tickets/raised",
     CLOSED:"/employee/tickets/closed",
@@ -70,6 +82,7 @@ export const API_ENDPOINTS = {
     UPDATETICKETASIGNNE: (id , eid)=> `/admin/tickets/${id}/assignee?assignee=${eid}`,
     COMMENT: (id) => `/chat/${id}`,
     SENDCOMMENT: (id) => `/tickets/${id}/messages`,
-    CC : "/employee/tickets/cc-tickets"
+    CC : "/employee/tickets/cc-tickets",
+    UPDATESTATUS: (id , status) => `employee/tickets/${id}/close/${status}`
   }
 };

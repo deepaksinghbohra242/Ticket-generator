@@ -7,7 +7,7 @@ import AddEmployee from "../pages/admin/AddEmployee";
 import AssignedTickets from "../pages/employee/AssignedTickets";
 import RaisedTickets from "../pages/employee/RaisedTickets";
 import NewTicket from "../pages/employee/NewTicket";
-import HomePage from "../components/dashboard/HomePage";
+import HomePage from "../components/homepage/HomePage";
 import ClosedTickets from "../pages/employee/ClosedTickets";
 import ProtectedRoute from "../components/common/ProtectedRoute";
 import TicketView from "../pages/TicketView";
@@ -22,7 +22,7 @@ function AppRoutes() {
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute allowedRoles={["admin", "user"]}>
+          <ProtectedRoute allowedRoles={["admin", "user" , "superadmin"]}>
             <Dashboard />
           </ProtectedRoute>
         }
@@ -41,27 +41,27 @@ function AppRoutes() {
         <Route
           path="employeelist"
           element={
-            <ProtectedRoute allowedRoles={["admin"]}>
+            <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
               <EmployeeList />
             </ProtectedRoute>
           }
         />
-        <Route path="tickets" element={<ProtectedRoute allowedRoles={["admin" , "user"]}>
+        <Route path="tickets" element={<ProtectedRoute allowedRoles={["admin" , "user" , "superadmin"]}>
               <Tickets />
             </ProtectedRoute>} />
 
         <Route
           path="addemployee"
           element={
-            <ProtectedRoute allowedRoles={["admin"]}>
+            <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
               <AddEmployee />
             </ProtectedRoute>
           }
         />
         <Route
-          path="addemployee/:id"
+          path="addemployee/:empId"
           element={
-            <ProtectedRoute allowedRoles={["admin"]}>
+            <ProtectedRoute allowedRoles={["admin" , "superadmin"]}>
               <AddEmployee />
             </ProtectedRoute>
           }

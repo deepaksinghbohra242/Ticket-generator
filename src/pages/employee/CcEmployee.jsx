@@ -13,7 +13,6 @@ function CcEmployee() {
         const data = await ticketAPI.ccTicket();
         setTickets(data);
       } catch (error) {
-        console.error("Failed to fetch tickets:", error);
       } finally {
         setLoading(false);
       }

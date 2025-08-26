@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { authAPI } from "../api/authAPI";
 import { ticketAPI } from "../api/ticketAPI";
+import { adminAPI } from "../api/adminAPI";
 
 const AuthContext = createContext();
 
@@ -15,43 +16,55 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [subject , setSubject ] = useState([]);
+  const [subject, setSubject] = useState([]);
   const [error, setError] = useState(null);
-  const departments = ["IT" , "HARDWARE" , "HR" , "TRANSPORT"]; 
+  const [departments, setDepartments] = useState([]);
 
   useEffect(() => {
     checkAuthStatus();
     fetchSubjects();
+    fetchDepartments();
   }, []);
+
+  const normalizeUser = (userData) => {
+    const normalizedRole =
+      userData.role === "SUPER_ADMIN"
+        ? "superadmin"
+        : userData.role === "ADMIN"
+        ? "admin"
+        : "user";
+
+    return {
+      ...userData,
+      role: normalizedRole,
+      department: userData.department || null, 
+    };
+  };
 
   const checkAuthStatus = async () => {
     try {
       const token = localStorage.getItem("authToken");
       const storedUser = localStorage.getItem("user");
-      
+
       if (token && storedUser) {
         try {
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
         } catch (parseError) {
-          console.error("Error parsing stored user:", parseError);
           if (token) {
             const userData = await authAPI.getUserData();
-            const normalizedRole = userData.role === "ADMIN" ? "admin" : "user";
-            const normalizedUser = { ...userData, role: normalizedRole };
+            const normalizedUser = normalizeUser(userData);
             setUser(normalizedUser);
             localStorage.setItem("user", JSON.stringify(normalizedUser));
           }
         }
       } else if (token) {
         const userData = await authAPI.getUserData();
-        const normalizedRole = userData.role === "ADMIN" ? "admin" : "user";
-        const normalizedUser = { ...userData, role: normalizedRole };
+        const normalizedUser = normalizeUser(userData);
         setUser(normalizedUser);
         localStorage.setItem("user", JSON.stringify(normalizedUser));
       }
     } catch (err) {
-      console.error("Failed to check auth status:", err);
       localStorage.removeItem("authToken");
       localStorage.removeItem("user");
       setUser(null);
@@ -65,21 +78,16 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       setError(null);
       const response = await authAPI.login(email, password);
-      
-      console.log("Login response:", response);
 
       if (response.token && response.role) {
         localStorage.setItem("authToken", response.token);
-        
+
         const userData = await authAPI.getUserData();
-        const normalizedRole = response.role === "ADMIN" ? "admin" : "user";
-        const normalizedUser = { ...userData, role: normalizedRole };
-        
+        const normalizedUser = normalizeUser(userData);
+
         localStorage.setItem("user", JSON.stringify(normalizedUser));
         setUser(normalizedUser);
-        
-        console.log("User logged in:", normalizedUser);
-        
+
         return { success: true, user: normalizedUser };
       }
 
@@ -98,7 +106,6 @@ export const AuthProvider = ({ children }) => {
     try {
       await authAPI.logout();
     } catch (error) {
-      console.error("Logout failed:", error);
     } finally {
       localStorage.removeItem("authToken");
       localStorage.removeItem("user");
@@ -108,16 +115,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const fetchSubjects = async () =>{
+  const fetchSubjects = async () => {
     try {
-      const response  = await ticketAPI.getSubjects();
+      const response = await ticketAPI.getSubjects();
       setSubject(response.data);
-      console.log(response.data);
       return response.data;
     } catch (error) {
-      console.log(error);
     }
-  } 
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      const response = await adminAPI.getDepartments();
+      const deptList = Array.isArray(response) ? response : response.data;
+      setDepartments(deptList);
+      return deptList;
+    } catch (error) {
+      setDepartments([]);
+      return [];
+    }
+  };
 
   const value = {
     user,
@@ -128,11 +145,12 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     isAuthenticated: !!user,
-    isAdmin: user?.role?.toLowerCase() === "admin",
-    isUser: user?.role?.toLowerCase() === "user",
-    isSuperAdmin: user?.role?.toLowerCase() === "superadmin",
+    isAdmin: user?.role === "admin",
+    isUser: user?.role === "user",
+    isSuperAdmin: user?.role === "superadmin",
     clearError: () => setError(null),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+export default AuthContext;

@@ -13,7 +13,6 @@ function ClosedTickets() {
         const data = await ticketAPI.closeTicket();
         setTickets(data);
       } catch (error) {
-        console.error("Failed to fetch tickets:", error);
       } finally {
         setLoading(false);
       }

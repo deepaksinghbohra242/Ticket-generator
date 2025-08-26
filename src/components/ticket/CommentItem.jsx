@@ -1,7 +1,6 @@
 import React from "react";
 
 function CommentItem({ comment }) {
-  // Handle both old and new data structures
   const author = comment.senderName || comment.author || "Unknown User";
   const message = comment.message;
   const timestamp = comment.sentAt || comment.timestamp;

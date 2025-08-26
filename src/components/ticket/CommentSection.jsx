@@ -33,7 +33,6 @@ function CommentsSection({
         setComments(sortedComments);
         setError(null);
       } catch (err) {
-        console.error("Failed to fetch comments:", err);
         setError("Failed to load comments");
         setComments([]);
       } finally {
@@ -52,13 +51,10 @@ function CommentsSection({
 
     try {
       const message = newComment;
-      console.log("Sending comment:", message);
 
       const response = await ticketAPI.sendTicket(ticketId, message);
-      console.log("Comment sent successfully:", response);
       
       if (response) {
-        // Refresh comments after successful submission
         const updatedComments = await ticketAPI.getCommentForTicket(ticketId);
         const sortedComments = (updatedComments || []).sort((a, b) => {
           const timeA = new Date(a.sentAt || a.timestamp);
@@ -67,7 +63,6 @@ function CommentsSection({
         });
         setComments(sortedComments);
       } else {
-        // Fallback: add comment locally if API doesn't return updated list
         const fallbackComment = {
           id: Date.now(),
           senderName: currentUser?.name || "Current User",
@@ -82,7 +77,6 @@ function CommentsSection({
       
       setNewComment("");
     } catch (error) {
-      console.error("Failed to add comment:", error);
       setError("Failed to send comment. Please try again.");
     }
   };

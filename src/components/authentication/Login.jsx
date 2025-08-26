@@ -42,9 +42,7 @@ export default function Login() {
       if (result.success) {
         navigate(from, { replace: true });
       }
-      console.log(result)
     } catch (err) {
-      console.error("Login error:", err);
     } finally {
       setIsLoading(false);
     }

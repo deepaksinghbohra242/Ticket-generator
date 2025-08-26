@@ -15,7 +15,6 @@ function RaisedTickets() {
         const data = await ticketAPI.raisedTickets();
           setTickets(data);
       } catch (error) {
-        console.error("Failed to fetch tickets:", error);
       } finally {
         setLoading(false);
       }

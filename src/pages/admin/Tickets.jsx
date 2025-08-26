@@ -6,7 +6,7 @@ import { useAuth } from "../../contexts/AuthContext";
 
 function Tickets() {
 
-  const {isAdmin} = useAuth();
+  const {isSuperAdmin} = useAuth();
 
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,7 +14,7 @@ function Tickets() {
   useEffect(() => {
     const fetchTickets = async () => {
       try {
-        if(isAdmin){
+        if(isSuperAdmin){
           const data = await ticketAPI.getAllTickets();
           setTickets(data);
         }else{
@@ -24,7 +24,6 @@ function Tickets() {
         
 
       } catch (error) {
-        console.error("Failed to fetch tickets:", error);
       } finally {
         setLoading(false);
       }

@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { User, Calendar, Clock, Paperclip, ExternalLink } from "lucide-react";
+import { adminAPI } from "../../api/adminAPI";
 
 const priorityColors = {
   HIGH: "border-red-500 text-red-600 bg-red-50",
@@ -17,25 +18,88 @@ const statusColors = {
 };
 
 function TicketDetails({ ticket }) {
-  // Extract filename from URL for better display
+  const [employeeName, setEmployeeName] = useState(ticket.employeeName || "");
+  const [ccEmployeeNames, setCcEmployeeNames] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    console.log("Updated ccEmployeeNames:", ccEmployeeNames);
+  }, [ccEmployeeNames]);
+
+  useEffect(() => {
+    const fetchEmployeeNames = async () => {
+      try {
+        setIsLoading(true);
+        let mainEmpId = null;
+        let ccIds = [];
+        if (ticket.empId) {
+          mainEmpId = ticket.empId.toString();
+        }
+        if (ticket.ccEmployeeIds) {
+          if (typeof ticket.ccEmployeeIds === "string") {
+            ccIds = ticket.ccEmployeeIds
+              .split(",")
+              .map((id) => id.trim())
+              .filter((id) => id);
+          } else if (Array.isArray(ticket.ccEmployeeIds)) {
+            ccIds = ticket.ccEmployeeIds.map(id => id.toString().trim()).filter((id) => id);
+          }
+        }
+        if (ccIds.length > 0) {
+          try {
+            const ccRes = await adminAPI.getEmployeeNames(ccIds);
+            
+            if (ccRes.data && Array.isArray(ccRes.data)) {
+              setCcEmployeeNames(ccRes.data);
+            } else if (ccRes && Array.isArray(ccRes)) {
+              setCcEmployeeNames(ccRes);
+            } else {
+              setCcEmployeeNames([]);
+            }
+          } catch (ccError) {
+            setCcEmployeeNames([]);
+          }
+        } else {
+          setCcEmployeeNames([]);
+        }
+
+        // Then fetch main employee name if we have it
+        if (mainEmpId) {
+          try {
+            const mainRes = await adminAPI.getEmployeeNames([mainEmpId]);
+            
+            if (mainRes.data && Array.isArray(mainRes.data) && mainRes.data.length > 0) {
+              setEmployeeName(mainRes.data[0]);
+            } else if (mainRes && Array.isArray(mainRes) && mainRes.length > 0) {
+              setEmployeeName(mainRes[0]);
+            } else {
+              setEmployeeName(mainEmpId);
+            }
+          } catch (mainError) {
+            setEmployeeName(mainEmpId);
+          }
+        }
+
+      } catch (error) {
+        setEmployeeName(ticket.empId || "N/A");
+        setCcEmployeeNames([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (ticket && (ticket.empId || ticket.ccEmployeeIds)) {
+      fetchEmployeeNames();
+    }
+  }, [ticket.empId, ticket.ccEmployeeIds]); 
+
   const getFileNameFromUrl = (url) => {
     if (!url) return "";
-
     try {
-      // Handle Google Drive links
-      if (url.includes("drive.google.com")) {
-        return "Google Drive File";
-      }
-
-      // Extract filename from URL
-      const urlParts = url.split("/");
-      const fileName = urlParts[urlParts.length - 1];
-
-      // Remove query parameters
-      const cleanFileName = fileName.split("?")[0];
-
-      return cleanFileName || "Attachment";
-    } catch (error) {
+      if (url.includes("drive.google.com")) return "Google Drive File";
+      const fileName = url.split("/").pop().split("?")[0];
+      return fileName || "Attachment";
+    } catch {
       return "Attachment";
     }
   };
@@ -71,7 +135,7 @@ function TicketDetails({ ticket }) {
           <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
           <span className="text-gray-600">Employee:</span>
           <span className="font-medium">
-            {ticket.employeeName || "N/A"} {ticket.empId && `(${ticket.empId})`}
+            {isLoading ? "Loading..." : (employeeName || ticket.empId || "N/A")}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -95,29 +159,32 @@ function TicketDetails({ ticket }) {
         </div>
       </div>
 
-      {/* CC Employees Section */}
       <div className="mb-6">
         <h3 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
           <User className="w-4 h-4" />
           CC'd Employees
         </h3>
         <div className="flex flex-wrap gap-2">
-          {ticket?.ccEmployeeIds && ticket.ccEmployeeIds.length > 0 ? (
-            ticket.ccEmployeeIds.map((ccEmployee, index) => (
+          {isLoading ? (
+            <span className="text-gray-500">Loading CC employees...</span>
+          ) : ccEmployeeNames.length > 0 ? (
+            ccEmployeeNames.map((ccName, index) => (
               <span
                 key={index}
                 className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full border border-blue-200"
               >
-                {ccEmployee}
+                {ccName}
               </span>
             ))
           ) : (
-            <span className="text-gray-500">No CC'd employees</span>
+            <span className="text-gray-500">
+              No CC'd employees
+              {ticket.ccEmployeeIds ? ` (Raw: ${ticket.ccEmployeeIds})` : ""}
+            </span>
           )}
         </div>
       </div>
 
-      {/* Attachment Section */}
       {ticket.attachmentLink && (
         <div className="mb-6">
           <h3 className="font-medium text-gray-800 mb-3 flex items-center gap-2">

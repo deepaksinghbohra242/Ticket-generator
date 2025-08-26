@@ -11,10 +11,10 @@ import ErrorMessage from "../components/common/ErrorMessage";
 import { adminAPI } from "../api/adminAPI";
 
 function TicketView() {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isSuperAdmin } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
   const [ticket, setTicket] = useState(null);
   const [users, setUsers] = useState([]);
   const [departmentUsers, setDepartmentUsers] = useState([]);
@@ -42,7 +42,7 @@ function TicketView() {
 
         if (ticketData) {
           setTicket(ticketData);
-          
+
           if (ticketData.comments) {
             setComments(ticketData.comments);
           }
@@ -52,22 +52,19 @@ function TicketView() {
           try {
             const usersData = await adminAPI.getEmployees();
             setUsers(usersData || []);
-            
+
             if (ticketData?.department && usersData) {
-              const filteredUsers = usersData.filter(user => 
-                user.department === ticketData.department
+              const filteredUsers = usersData.filter(
+                (user) => user.department === ticketData.department
               );
               setDepartmentUsers(filteredUsers);
             } else {
               setDepartmentUsers(usersData || []);
             }
           } catch (usersError) {
-            console.warn("Failed to fetch users:", usersError);
           }
         }
-
       } catch (error) {
-        console.error("Failed to fetch ticket data:", error);
         setError("Failed to load ticket details. Please try again.");
       } finally {
         setLoading(false);
@@ -80,7 +77,6 @@ function TicketView() {
   const updateTicket = (updatedTicket) => {
     setTicket(updatedTicket);
   };
-
 
   const handleGoBack = () => {
     navigate(-1);
@@ -95,7 +91,9 @@ function TicketView() {
   }
 
   if (!ticket) {
-    return <ErrorMessage message="Ticket not found" onGoBack={() => navigate(-1)} />;
+    return (
+      <ErrorMessage message="Ticket not found" onGoBack={() => navigate(-1)} />
+    );
   }
 
   return (
@@ -113,10 +111,10 @@ function TicketView() {
           </h1>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className={`grid grid-cols-1 ${isSuperAdmin ? "xl:grid-cols-2" : "xl:grid-cols-3" } gap-6`}>
           <div className="xl:col-span-2 space-y-6">
             <TicketDetails ticket={ticket} />
-            <CommentsSection 
+            <CommentsSection
               ticketId={id}
               currentUser={user}
               isAdmin={isAdmin}
@@ -124,16 +122,18 @@ function TicketView() {
             />
           </div>
 
-          <div className="xl:col-span-1">
-            <TicketManagement
-              ticket={ticket}
-              onUpdateTicket={updateTicket}
-              departmentUsers={departmentUsers}
-              currentUser={user}
-              isAdmin={isAdmin}
-              ticketId={id}
-            />
-          </div>
+          {!isSuperAdmin  && (
+            <div className="xl:col-span-1">
+              <TicketManagement
+                ticket={ticket}
+                onUpdateTicket={updateTicket}
+                departmentUsers={departmentUsers}
+                currentUser={user}
+                isAdmin={isAdmin}
+                ticketId={id}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

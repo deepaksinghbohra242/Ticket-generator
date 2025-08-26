@@ -7,7 +7,7 @@ import {
   FileText, 
   CheckSquare, 
   Trash2,
-  Home
+  Home,
 } from "lucide-react";
 
 function Sidebar({ user }) {
@@ -16,6 +16,12 @@ function Sidebar({ user }) {
   const fromPath = location.state?.from; 
 
   const effectivePath = fromPath || currentPath;
+
+  const superAdminNavItems = [
+    { path: '/dashboard/employeelist', icon: Users, label: 'Employees'},
+    { path: '/dashboard/tickets', icon: Ticket, label: 'All Tickets'},
+    { path: '/dashboard/homepage', icon: Home, label: 'Dashboard'},
+  ];
 
   const adminNavItems = [
     { path: '/dashboard/employeelist', icon: Users, label: 'Employees'},
@@ -31,8 +37,10 @@ function Sidebar({ user }) {
     { path: '/dashboard/cc', icon: Users, label: 'CC to me' }
   ];
 
-  const navItems = user === 'admin' 
-    ? [...adminNavItems, ...userNavItems] 
+  let navItems = user === 'superadmin'
+    ? [...superAdminNavItems]
+    : user === 'admin'
+    ? [...adminNavItems, ...userNavItems]
     : userNavItems;
 
   const NavItem = ({ item }) => {
@@ -59,14 +67,24 @@ function Sidebar({ user }) {
       <div className="p-6">
         <div className="mb-6">
           <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
-            user === 'admin' 
+            user === 'superadmin'
+              ? 'bg-red-100 text-red-700'
+              : user === 'admin'
               ? 'bg-purple-100 text-purple-700' 
               : 'bg-green-100 text-green-700'
           }`}>
             <div className={`w-2 h-2 rounded-full ${
-              user === 'admin' ? 'bg-purple-500' : 'bg-green-500'
+              user === 'superadmin'
+                ? 'bg-red-500'
+                : user === 'admin'
+                ? 'bg-purple-500'
+                : 'bg-green-500'
             }`} />
-            {user === 'admin' ? 'Administrator' : 'Employee'}
+            {user === 'superadmin' 
+              ? 'SuperAdmin'
+              : user === 'admin' 
+              ? 'Administrator' 
+              : 'Employee'}
           </div>
         </div>
 
