@@ -11,6 +11,7 @@ function NewTicket() {
   const isEditMode = Boolean(id);
   const { user, departments } = useAuth();
 
+  const [originalTicketData, setOriginalTicketData] = useState(null);
   const [formData, setFormData] = useState({
     subject: "",
     detailedMessage: "",
@@ -45,28 +46,29 @@ function NewTicket() {
         updateState({ isLoading: true, error: null });
 
         // Fetch all employees for CC dropdown
-        const response = await fetch(
-          "http://localhost:8080/api/employee/tickets/dropdown"
-        );
+        const response = await ticketAPI.dropdownData();
+        console.log("Dropdown data response:", response);
         
-        if (!response.ok) {
-          throw new Error(`Failed to fetch employees: ${response.status}`);
-        }
-        
-        const allEmps = await response.json();
+        const allEmps = response || [];
         updateState({ allEmployees: allEmps });
 
-        if (isEditMode) {
+        if (isEditMode && id) {
+          // Fetch the ticket data for editing
           const data = await ticketAPI.getUserTicket(id);
+          console.log("Fetched ticket data:", data);
           
-          const ccIds = data.ccEmployeeIds ? data.ccEmployeeIds.split(",") : [];
+          // Store original data for reference
+          setOriginalTicketData(data);
           
+          const ccIds = data.ccEmployeeIds ? data.ccEmployeeIds.split(",").filter(Boolean) : [];
+          
+          // Preserve original values or use defaults
           setFormData({
-            subject: data.subject,
-            detailedMessage: data.detailedMessage,
-            department: data.department,
-            priority: data.priority,
-            status: data.status,
+            subject: data.subject || "",
+            detailedMessage: data.detailedMessage || "",
+            department: data.department || "",
+            priority: data.priority || "MEDIUM",
+            status: data.status || "OPEN",
             assignedTo: data.assignedTo || "",
             ccEmployeeIds: data.ccEmployeeIds || "",
             attachmentLink: data.attachmentLink || "",
@@ -74,18 +76,30 @@ function NewTicket() {
 
           updateState({ selectedCCEmployees: ccIds });
 
+          // Fetch subjects for the department if it exists
           if (data.department) {
-            const subs = await ticketAPI.getSubjects(data.department);
-            updateState({ subjects: subs });
+            try {
+              const subs = await ticketAPI.getSubjects(data.department);
+              updateState({ subjects: subs });
+            } catch (err) {
+              console.warn("Failed to load subjects for department:", data.department);
+              updateState({ subjects: [] });
+            }
           }
         }
 
+        // Fetch employees for admin users
         if (user.role === "ADMIN") {
-          const employees = await adminAPI.getEmployees();
-          updateState({ employees });
+          try {
+            const employees = await adminAPI.getEmployees();
+            updateState({ employees });
+          } catch (err) {
+            console.warn("Failed to load employees for admin");
+          }
         }
 
       } catch (err) {
+        console.error("Error fetching data:", err);
         updateState({ 
           error: "Failed to load data. Please refresh the page and try again." 
         });
@@ -109,8 +123,12 @@ function NewTicket() {
         updateState({ error: null });
         const subs = await ticketAPI.getSubjects(value);
         updateState({ subjects: subs });
-        setFormData((prev) => ({ ...prev, subject: "" }));
+        // Only reset subject if we're not in edit mode
+        if (!isEditMode) {
+          setFormData((prev) => ({ ...prev, subject: "" }));
+        }
       } catch (err) {
+        console.error("Error loading subjects:", err);
         updateState({ error: "Failed to load subjects for selected department." });
       }
     }
@@ -153,14 +171,29 @@ function NewTicket() {
         success: null 
       });
 
-      if (isEditMode) {
-        await ticketAPI.updateTicket(id, formData);
+      // Prepare submission data
+      const submissionData = { ...formData };
+      
+      // For edit mode, preserve original values for unchanged fields
+      if (isEditMode && originalTicketData) {
+        // Only send fields that have actually changed or are explicitly set
+        Object.keys(submissionData).forEach(key => {
+          if (submissionData[key] === "" && originalTicketData[key]) {
+            submissionData[key] = originalTicketData[key];
+          }
+        });
+      }
+
+      console.log("Submitting data:", submissionData);
+
+      if (isEditMode && id) {
+        await ticketAPI.updateTicketDetails(id, submissionData);
         updateState({ 
           success: "Ticket updated successfully! Redirecting...",
           isSubmitting: false 
         });
       } else {
-        await ticketAPI.addTicket(formData);
+        await ticketAPI.addTicket(submissionData);
         updateState({ 
           success: "Ticket created successfully! Redirecting...",
           isSubmitting: false 
@@ -169,9 +202,10 @@ function NewTicket() {
 
       setTimeout(() => {
         navigate("/dashboard/raisedticket");
-      }, 1500);
+      }, 2000);
 
     } catch (err) {
+      console.error("Error submitting ticket:", err);
       updateState({ 
         error: `Failed to ${isEditMode ? 'update' : 'create'} ticket. Please try again.`,
         isSubmitting: false 
@@ -247,16 +281,17 @@ function NewTicket() {
             value={formData.department}
             onChange={handleChange}
             required
-            disabled={isEditMode || state.isSubmitting}
+            disabled={state.isSubmitting}
             className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none ${
-              isEditMode || state.isSubmitting ? "bg-gray-100 cursor-not-allowed" : ""
+              state.isSubmitting ? "bg-gray-100 cursor-not-allowed" : ""
             }`}
           >
             <option value="">-- Select Department --</option>
 
+            {/* Show current department in edit mode even if not in departments list */}
             {isEditMode &&
               formData.department &&
-              !departments.includes(formData.department) && (
+              !departments?.includes(formData.department) && (
                 <option value={formData.department}>
                   {formData.department}
                 </option>
@@ -285,6 +320,7 @@ function NewTicket() {
           >
             <option value="">-- Select Subject --</option>
 
+            {/* Show current subject in edit mode even if not in subjects list */}
             {isEditMode &&
               formData.subject &&
               !state.subjects.includes(formData.subject) && (
@@ -460,10 +496,33 @@ function NewTicket() {
           </div>
         )}
 
+        {/* Show assigned to field for admin users in edit mode */}
+        {isEditMode && user.role === "ADMIN" && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Assigned To
+            </label>
+            <select
+              name="assignedTo"
+              value={formData.assignedTo}
+              onChange={handleChange}
+              disabled={state.isSubmitting}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              <option value="">-- Not Assigned --</option>
+              {state.employees.map((emp) => (
+                <option key={emp.empId} value={emp.empId}>
+                  {emp.name} ({emp.empId})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div className="pt-4">
           <button
             type="submit"
-            disabled={state.isSubmitting}
+            disabled={state.isSubmitting }
             className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
           >
             {state.isSubmitting ? (

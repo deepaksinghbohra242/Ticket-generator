@@ -104,4 +104,22 @@ export const ticketAPI = {
     const response = await apiClient.put(API_ENDPOINTS.TICKET.UPDATESTATUS(ticketId , status));
     return response.data;
   },
+
+  updateTicketDetails : async (ticketId, ticket) => {
+    const response = await apiClient.put(API_ENDPOINTS.TICKET.UPDATETICKET(ticketId), {
+      subject : ticket.subject,
+      department : ticket.department,
+      detailedMessage : ticket.detailedMessage,
+      priority : ticket.priority,
+      ccEmployeeIds : ticket.ccEmployeeIds,
+      attachmentLink: ticket.attachmentLink,
+      status : ticket.status
+    });
+    return response.data;
+  }, 
+
+  dropdownData : async () => {
+    const response = await apiClient.get(API_ENDPOINTS.TICKET.DROPDOWN);
+    return response.data;
+  }
 };

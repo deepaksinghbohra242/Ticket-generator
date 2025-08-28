@@ -49,7 +49,7 @@ export const API_ENDPOINTS = {
   },
   ADMIN:{
     EMPLOYEES: "/admin/get_employees",
-    ADD: "/admin/add_employees",
+    ADD: "/admin/add-employee",
     SUBJECT: "/admin/tickets/add_subjects",
     DEPARTMENTS: "/employee/tickets/departments",
     SUBJECTS: "/employee/tickets/get_subjects",
@@ -83,6 +83,8 @@ export const API_ENDPOINTS = {
     COMMENT: (id) => `/chat/${id}`,
     SENDCOMMENT: (id) => `/tickets/${id}/messages`,
     CC : "/employee/tickets/cc-tickets",
-    UPDATESTATUS: (id , status) => `employee/tickets/${id}/close/${status}`
+    UPDATESTATUS: (id , status) => `employee/tickets/${id}/close/${status}`,
+    UPDATETICKET : (id) => `/employee/tickets/update_ticket/${id}`,
+    DROPDOWN : "/employee/tickets/dropdown"
   }
 };

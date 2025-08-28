@@ -22,6 +22,45 @@ function TicketsTable({ tickets = [], type }) {
     navigate(`/dashboard/viewticket/${id}`, { state: { from: fromPath } });
   };
 
+  // Helper function to safely format status/priority text
+  const formatText = (text) => {
+    if (!text || typeof text !== 'string') return 'N/A';
+    // Handle common variations and ensure proper formatting
+    const cleanText = text.toString().trim();
+    if (!cleanText) return 'N/A';
+    return cleanText.charAt(0).toUpperCase() + cleanText.slice(1).toLowerCase();
+  };
+
+  // Helper function to get status styling
+  const getStatusStyle = (status) => {
+    if (!status) return 'border-gray-400 text-gray-500';
+    
+    switch (status.toUpperCase()) {
+      case 'OPEN':
+        return 'border-green-500 text-green-600';
+      case 'CLOSED':
+        return 'border-gray-400 text-gray-500';
+      default:
+        return 'border-yellow-500 text-yellow-600';
+    }
+  };
+
+  // Helper function to get priority styling
+  const getPriorityStyle = (priority) => {
+    if (!priority) return 'border-gray-400 text-gray-500';
+    
+    switch (priority.toUpperCase()) {
+      case 'HIGH':
+        return 'border-red-500 text-red-600';
+      case 'MEDIUM':
+        return 'border-yellow-500 text-yellow-600';
+      case 'LOW':
+        return 'border-green-500 text-green-600';
+      default:
+        return 'border-gray-400 text-gray-500';
+    }
+  };
+
   return (
     <div className="mb-12">
       <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
@@ -43,25 +82,21 @@ function TicketsTable({ tickets = [], type }) {
               {tickets.map((ticket) => (
                 <tr key={ticket.ticketNo} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-4 whitespace-nowrap font-semibold text-indigo-600">
-                    {ticket.ticketNo.toString().padStart(5, '0')}
+                    {ticket.ticketNo ? ticket.ticketNo.toString().padStart(5, '0') : 'N/A'}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium border 
-                      ${ticket.status === 'OPEN' ? 'border-green-500 text-green-600' :
-                        ticket.status === 'CLOSED' ? 'border-gray-400 text-gray-500' :
-                        'border-yellow-500 text-yellow-600'}`}>
-                      {ticket.status.charAt(0) + ticket.status.slice(1).toLowerCase()}
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusStyle(ticket.status)}`}>
+                      {formatText(ticket.status)}
                     </span>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium border 
-                      ${ticket.priority === 'HIGH' ? 'border-red-500 text-red-600' :
-                        ticket.priority === 'MEDIUM' ? 'border-yellow-500 text-yellow-600' :
-                        'border-green-500 text-green-600'}`}>
-                      {ticket.priority.charAt(0) + ticket.priority.slice(1).toLowerCase()}
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getPriorityStyle(ticket.priority)}`}>
+                      {formatText(ticket.priority)}
                     </span>
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-gray-700">{ticket.department}</td>
+                  <td className="px-4 py-4 whitespace-nowrap text-gray-700">
+                    {ticket.department || 'N/A'}
+                  </td>
                   <td className="px-4 py-4 whitespace-nowrap text-gray-700">
                     {ticket.assignee || 'Unassigned'}
                   </td>
