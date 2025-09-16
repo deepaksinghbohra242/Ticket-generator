@@ -121,5 +121,15 @@ export const ticketAPI = {
   dropdownData : async () => {
     const response = await apiClient.get(API_ENDPOINTS.TICKET.DROPDOWN);
     return response.data;
-  }
+  },
+
+  globalSummary: async () => {
+    const response = await apiClient.get(API_ENDPOINTS.TICKET.GLOBAL_SUMMARY);
+    return response.data;
+  },
+
+  departmentSummary: async (department) => {
+    const response = await apiClient.get(API_ENDPOINTS.TICKET.DEPARTMENT_SUMMARY(department));
+    return response.data;
+  },
 };

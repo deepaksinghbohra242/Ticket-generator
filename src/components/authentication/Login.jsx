@@ -53,7 +53,7 @@ export default function Login() {
       <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-md">
         <div className="flex items-center justify-center mb-6 text-blue-600 text-2xl font-bold gap-2">
           <BsPostcardFill />
-          VBS Ticket Collector
+          Issue Tracker
         </div>
         <h2 className="text-center text-xl font-semibold mb-4">
           Sign in to your account

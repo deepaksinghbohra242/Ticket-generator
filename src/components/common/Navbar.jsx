@@ -20,8 +20,10 @@ function Navbar() {
               <Ticket size={24} className="text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-800">VBS Ticket Collector</h1>
-              <p className="text-xs text-gray-500 hidden sm:block">Support Management System</p>
+              <h1 className="text-xl font-bold text-gray-800">Issue Tracker</h1>
+              <p className="text-xs text-gray-500 hidden sm:block">
+                Support Management System
+              </p>
             </div>
           </div>
 
@@ -36,11 +38,13 @@ function Navbar() {
                     <User size={18} className="text-white" />
                   </div>
                   <div className="text-left hidden sm:block">
-                    <p className="font-medium text-gray-800">
-                      {user.name}
-                    </p>
+                    <p className="font-medium text-gray-800">{user.name}</p>
                     <p className="text-xs text-gray-500">
-                      {user.role === "admin" ? "Administrator" : "Employee"}
+                      {user.role === "superadmin"
+                        ? "Super Admin"
+                        : user.role === "admin"
+                        ? "Admin"
+                        : "Employee"}
                     </p>
                   </div>
                 </button>

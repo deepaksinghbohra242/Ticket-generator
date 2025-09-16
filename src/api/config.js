@@ -85,6 +85,8 @@ export const API_ENDPOINTS = {
     CC : "/employee/tickets/cc-tickets",
     UPDATESTATUS: (id , status) => `employee/tickets/${id}/close/${status}`,
     UPDATETICKET : (id) => `/employee/tickets/update_ticket/${id}`,
-    DROPDOWN : "/employee/tickets/dropdown"
+    DROPDOWN : "/employee/tickets/dropdown",
+    GLOBAL_SUMMARY: "/employeeticket/tickets-summary/all",
+    DEPARTMENT_SUMMARY: (department) => `/employeeticket/tickets-summary/${department}`,
   }
 };

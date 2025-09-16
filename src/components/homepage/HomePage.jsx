@@ -6,21 +6,17 @@ import DepartmentsSection from "./DepartmentsSection";
 import SubjectsSection from "./SubjectsSection";
 
 function HomePage() {
-  const { user, isSuperAdmin, isAdmin } = useAuth();
+  const { user, isSuperAdmin, isDepartmentAdmin  , isAdmin} = useAuth();
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const adminDepartment = user?.department || null;
 
   useEffect(() => {
-    if (isAdmin && adminDepartment) {
+    if (isDepartmentAdmin && !isSuperAdmin && adminDepartment) {
       setSelectedDepartment(adminDepartment);
-    }
-  }, [isAdmin, adminDepartment]);
-
-  useEffect(() => {
-    if (isSuperAdmin) {
+    } else if (isSuperAdmin) {
       setSelectedDepartment(null);
     }
-  }, [isSuperAdmin]);
+  }, [isDepartmentAdmin, isSuperAdmin, adminDepartment]);
 
   const handleDepartmentSelect = (department) => {
     setSelectedDepartment(department);
@@ -29,9 +25,12 @@ function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-6">
-        <StatsDashboard user={user} />
+        <StatsDashboard 
+          user={user} 
+          selectedDepartment={selectedDepartment} 
+        />
 
-        {(isAdmin || isSuperAdmin) && (
+        {(isAdmin) && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {isSuperAdmin && (
               <div className="lg:col-span-2">

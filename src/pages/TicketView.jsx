@@ -11,7 +11,7 @@ import ErrorMessage from "../components/common/ErrorMessage";
 import { adminAPI } from "../api/adminAPI";
 
 function TicketView() {
-  const { user, isAdmin, isSuperAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -111,7 +111,7 @@ function TicketView() {
           </h1>
         </div>
 
-        <div className={`grid grid-cols-1 ${isSuperAdmin ? "xl:grid-cols-2" : "xl:grid-cols-3" } gap-6`}>
+        <div className={`grid grid-cols-1 xl:grid-cols-3 gap-6`}>
           <div className="xl:col-span-2 space-y-6">
             <TicketDetails ticket={ticket} />
             <CommentsSection
@@ -122,7 +122,6 @@ function TicketView() {
             />
           </div>
 
-          {!isSuperAdmin  && (
             <div className="xl:col-span-1">
               <TicketManagement
                 ticket={ticket}
@@ -133,7 +132,6 @@ function TicketView() {
                 ticketId={id}
               />
             </div>
-          )}
         </div>
       </div>
     </div>

@@ -22,10 +22,8 @@ function TicketsTable({ tickets = [], type }) {
     navigate(`/dashboard/viewticket/${id}`, { state: { from: fromPath } });
   };
 
-  // Helper function to safely format status/priority text
   const formatText = (text) => {
     if (!text || typeof text !== 'string') return 'N/A';
-    // Handle common variations and ensure proper formatting
     const cleanText = text.toString().trim();
     if (!cleanText) return 'N/A';
     return cleanText.charAt(0).toUpperCase() + cleanText.slice(1).toLowerCase();

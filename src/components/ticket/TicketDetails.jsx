@@ -19,6 +19,7 @@ const statusColors = {
 
 function TicketDetails({ ticket }) {
   const [employeeName, setEmployeeName] = useState(ticket.employeeName || "");
+  const [assigneeName, setAssigneeName] = useState("");
   const [ccEmployeeNames, setCcEmployeeNames] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -32,9 +33,19 @@ function TicketDetails({ ticket }) {
         setIsLoading(true);
         let mainEmpId = null;
         let ccIds = [];
+        let assigneeId = null;
+
+        // Process main employee ID
         if (ticket.empId) {
           mainEmpId = ticket.empId.toString();
         }
+
+        // Process assignee ID
+        if (ticket.assignee && ticket.assignee !== "Unassigned") {
+          assigneeId = ticket.assignee.toString();
+        }
+
+        // Process CC employee IDs
         if (ticket.ccEmployeeIds) {
           if (typeof ticket.ccEmployeeIds === "string") {
             ccIds = ticket.ccEmployeeIds
@@ -45,6 +56,8 @@ function TicketDetails({ ticket }) {
             ccIds = ticket.ccEmployeeIds.map(id => id.toString().trim()).filter((id) => id);
           }
         }
+
+        // Fetch CC employee names
         if (ccIds.length > 0) {
           try {
             const ccRes = await adminAPI.getEmployeeNames(ccIds);
@@ -57,13 +70,14 @@ function TicketDetails({ ticket }) {
               setCcEmployeeNames([]);
             }
           } catch (ccError) {
+            console.error("Error fetching CC employee names:", ccError);
             setCcEmployeeNames([]);
           }
         } else {
           setCcEmployeeNames([]);
         }
 
-        // Then fetch main employee name if we have it
+        // Fetch main employee name
         if (mainEmpId) {
           try {
             const mainRes = await adminAPI.getEmployeeNames([mainEmpId]);
@@ -76,22 +90,49 @@ function TicketDetails({ ticket }) {
               setEmployeeName(mainEmpId);
             }
           } catch (mainError) {
+            console.error("Error fetching main employee name:", mainError);
             setEmployeeName(mainEmpId);
           }
         }
 
+        // Fetch assignee name
+        if (assigneeId) {
+          try {
+            const assigneeRes = await adminAPI.getEmployeeById(assigneeId);
+            
+            if (assigneeRes && assigneeRes.name) {
+              setAssigneeName(assigneeRes.name);
+            } else if (assigneeRes && assigneeRes.employeeName) {
+              setAssigneeName(assigneeRes.employeeName);
+            } else if (assigneeRes && assigneeRes.firstName && assigneeRes.lastName) {
+              setAssigneeName(`${assigneeRes.firstName} ${assigneeRes.lastName}`);
+            } else if (assigneeRes && assigneeRes.firstName) {
+              setAssigneeName(assigneeRes.firstName);
+            } else {
+              setAssigneeName(assigneeId);
+            }
+          } catch (assigneeError) {
+            console.error("Error fetching assignee name:", assigneeError);
+            setAssigneeName(assigneeId);
+          }
+        } else {
+          setAssigneeName("");
+        }
+
       } catch (error) {
+        console.error("Error in fetchEmployeeNames:", error);
         setEmployeeName(ticket.empId || "N/A");
+        setAssigneeName(ticket.assignee || "");
         setCcEmployeeNames([]);
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (ticket && (ticket.empId || ticket.ccEmployeeIds)) {
+    if (ticket && (ticket.empId || ticket.ccEmployeeIds || ticket.assignee)) {
       fetchEmployeeNames();
     }
-  }, [ticket.empId, ticket.ccEmployeeIds]); 
+  }, [ticket.empId, ticket.ccEmployeeIds, ticket.assignee]); 
 
   const getFileNameFromUrl = (url) => {
     if (!url) return "";
@@ -155,7 +196,9 @@ function TicketDetails({ ticket }) {
         <div className="flex items-center gap-2">
           <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
           <span className="text-gray-600">Assigned to:</span>
-          <span className="font-medium">{ticket.assignee || "Unassigned"}</span>
+          <span className="font-medium">
+            {isLoading ? "Loading..." : (assigneeName || "Unassigned")}
+          </span>
         </div>
       </div>
 
